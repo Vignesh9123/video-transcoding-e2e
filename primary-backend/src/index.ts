@@ -1,0 +1,25 @@
+import express from 'express'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import { config } from './config'
+import dotenv from 'dotenv'
+const app = express()
+dotenv.config()
+
+app.use(cors())
+app.use(cookieParser())
+app.use(express.json())
+
+app.get("/", (req, res) => {
+    res.send('Hello World')
+})
+app.get('/health', (req, res) => {
+    res.send('OK')
+})
+
+app.listen(config.PORT, () => {
+    console.log(`Server is running on port ${config.PORT}`)
+})
+
+import indexRouter from './routes'
+app.use('/api', indexRouter)

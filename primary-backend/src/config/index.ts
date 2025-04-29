@@ -1,0 +1,11 @@
+import dotenv from 'dotenv'
+dotenv.config()
+export const config = {
+    PORT: Number(process.env.PORT || 3000),
+    JWT_SECRET: String(process.env.JWT_SECRET || 'secret'),
+    JWT_EXPIRATION: String(process.env.JWT_EXPIRATION || '1d'),
+    AWS_REGION: String(process.env.AWS_REGION || 'us-east-1'),
+    AWS_ACCESS_KEY_ID: String(process.env.AWS_ACCESS_KEY_ID || ''),
+    AWS_SECRET_ACCESS_KEY: String(process.env.AWS_SECRET_ACCESS_KEY || ''),
+    S3_UPLOAD_BUCKET_NAME: String(process.env.S3_UPLOAD_BUCKET_NAME || ''),
+}
