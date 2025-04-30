@@ -17,7 +17,7 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
             Key: key
         })
         const signedUrl = await getSignedUrl(s3Client, command, {
-            expiresIn: 60 * 60
+            expiresIn: 60 * 60          
         })
         res.status(200).json({
             signedUrl,
