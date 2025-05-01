@@ -82,7 +82,7 @@ const ProfilePage = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>API Access</CardTitle>
                 <CardDescription>Manage your API keys for programmatic access</CardDescription>
@@ -90,7 +90,7 @@ const ProfilePage = () => {
               <CardContent>
                 <Button variant="outline">Generate API Key</Button>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
       </div>

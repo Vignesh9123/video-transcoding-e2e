@@ -89,7 +89,7 @@ const VideoList = () => {
       </div>
 
       <Tabs defaultValue="all" value={activeFilter} onValueChange={(v) => setActiveFilter(v as StatusFilter)}>
-        <TabsList className="grid grid-cols-5 mb-6">
+        <TabsList className="grid h-auto grid-cols-3  md:grid-cols-5 mb-6">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="transcoding">Transcoding</TabsTrigger>

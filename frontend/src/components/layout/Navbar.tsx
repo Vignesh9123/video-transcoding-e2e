@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,9 @@ const Navbar = () => {
 
   return (
     <nav className="border-b bg-background">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16">
+      <div className="w-[95vw] md:w-screen md:container mx-auto px-4 flex items-center justify-between h-16">
         <div className="flex items-center">
-          <Link to={isAuthenticated ? "/dashboard" : "/"} className="flex items-center space-x-2">
+          <Link to={"/"} className="flex items-center space-x-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -42,7 +42,7 @@ const Navbar = () => {
           
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Button variant="outline" asChild>
+              <Button className="hidden md:block" variant="outline" asChild>
                 <Link to="/upload">Upload Video</Link>
               </Button>
               <DropdownMenu>
