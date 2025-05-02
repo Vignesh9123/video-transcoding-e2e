@@ -15,6 +15,7 @@ import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
+import Footer from "./components/layout/Footer";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const AppRoutes = () => (
         
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Footer />
     </AuthProvider>
   </BrowserRouter>
 );

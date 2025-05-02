@@ -1,7 +1,4 @@
 
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle } from "lucide-react";
 import { HeroSection } from "@/components/hero-section-5";
 const LandingPage = () => {
   return (
@@ -230,7 +227,7 @@ const features = [
 
 export function FeatureStepsDemo() {
   return (
-    <div className="container mx-auto px-4 py-8 flex-grow">
+    <div className="container mx-auto px-4 py-8 flex-grow bg-gray-200 dark:bg-gray-950 rounded-xl">
 
       <FeatureSteps 
         features={features}

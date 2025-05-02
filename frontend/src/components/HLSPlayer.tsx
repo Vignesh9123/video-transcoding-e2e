@@ -43,7 +43,7 @@ const HLSPlayer = ({ src, width = '100%', height = 'auto' }) => {
   }, [src]);
 
   return (
-    <div>
+    <>
 
     <video
       ref={videoRef}
@@ -74,7 +74,7 @@ const HLSPlayer = ({ src, width = '100%', height = 'auto' }) => {
         }
       })}>720p</button>
       <button onClick={() => hlsRef.current.currentLevel = -1}>Auto</button> */}
-      </div>
+      </>
   );
 };
 
