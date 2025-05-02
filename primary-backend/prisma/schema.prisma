@@ -6,10 +6,27 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Video {
+  id        String      @id @default(cuid())
+  name      String
+  status    VideoStatus @default(UPLOADING)
+  progress  Float       @default(0)
+  url       String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+enum VideoStatus {
+  UPLOADING
+  PENDING
+  TRANSCODING
+  COMPLETED
+  FAILED
 }

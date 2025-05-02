@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
+import { PrismaClient, VideoStatus } from '@prisma/client'
 export const config = {
     PORT: Number(process.env.PORT || 3000),
     JWT_SECRET: String(process.env.JWT_SECRET || 'secret'),
@@ -8,4 +9,7 @@ export const config = {
     AWS_ACCESS_KEY_ID: String(process.env.AWS_ACCESS_KEY_ID || ''),
     AWS_SECRET_ACCESS_KEY: String(process.env.AWS_SECRET_ACCESS_KEY || ''),
     S3_UPLOAD_BUCKET_NAME: String(process.env.S3_UPLOAD_BUCKET_NAME || ''),
+    VideoStatusEnum: VideoStatus,
 }
+
+export const prisma = new PrismaClient()
