@@ -227,7 +227,7 @@ const features = [
 
 export function FeatureStepsDemo() {
   return (
-    <div className="container mx-auto px-4 py-8 flex-grow bg-gray-200 dark:bg-gray-950 rounded-xl">
+    <div className=" mx-auto px-4 py-8 flex-grow bg-gray-200 dark:bg-gray-950 rounded-xl">
 
       <FeatureSteps 
         features={features}

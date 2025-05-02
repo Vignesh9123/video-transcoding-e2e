@@ -52,8 +52,7 @@ const Footer = () => {
               <span className="font-bold text-xl">TranscodeCanvas</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Transform your videos with our powerful transcoding platform. Convert, resize, and optimize with ease.
-            </p>
+            Transform your videos with our powerful transcoding platform. Compress and optimize with ease.            </p>
           </div>
           
           {/* Quick Links */}

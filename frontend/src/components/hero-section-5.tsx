@@ -16,7 +16,7 @@ export function HeroSection() {
             <HeroHeader />
             <main className="overflow-x-hidden">
                 <section>
-                    <div className="py-24 md:pb-32 lg:pb-36 lg:pt-60">
+                    <div className="py-24 md:pb-32 lg:pb-36 lg:pt-60 2xl:pt-96 2xl:pb-96 2xl:my-">
                         <div className="relative z-10 mx-auto flex max-w-7xl flex-col px-6 lg:block lg:px-12">
                             <motion.div 
                             initial={{ opacity: 0, y: 20 }}
