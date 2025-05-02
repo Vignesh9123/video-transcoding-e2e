@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/accordion";
 import FormatSelection from "./FormatSelection";
 import ResolutionSelection from "./ResolutionSelection";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "../ui/progress";
 
 interface UploadFormProps {
   onFileChange: (file: File | null) => void;
@@ -29,6 +31,9 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
   const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["720p"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -70,46 +75,114 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     return true;
   };
 
+  function uploadToS3PresignedUrl(file: File, presignedUrl: string, key: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', presignedUrl);
+    
+    // Optional: Set content-type if your backend expects it
+    xhr.setRequestHeader('Content-Type', file.type)
+    xhr.setRequestHeader('key', key)
+    
+    xhrRef.current = xhr;
+    // Track progress
+    xhr.upload.onprogress = function (event) {
+      if (event.lengthComputable) {
+        const percentComplete = (event.loaded / event.total) * 100;
+        console.log(`Upload Progress: ${percentComplete.toFixed(2)}%`);
+        setProgress(percentComplete)
+      }
+    };
+    
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        console.log('Upload successful!');
+        resolve();
+      } else {
+        reject(new Error('Upload failed with status ' + xhr.status));
+      }
+    };
+    
+    xhr.onerror = function () {
+      reject(new Error('Network error'));
+    };
+    xhr.upload.onabort = function () {
+      reject(new Error('Upload aborted'));
+    };
+    
+    xhr.send(file);
+    });
+    }
 
+    const abortUpload = () => {
+      if (xhrRef.current) {
+        xhrRef.current.abort();
+        xhrRef.current = null;
+        setOpen(false);
+        setIsSubmitting(false);
+        setProgress(0);
+      }
+    }
+
+    
     
     const uploadHandler = async(e: React.FormEvent) => {
       e.preventDefault();
       try {
         if (!uploadedFile) return
+        setOpen(true)
+        setIsSubmitting(true)
         const res = await fetch("http://localhost:3000/api/video/get-presigned-url", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            key: uploadedFile.name
+            name: uploadedFile.name
           })
         })
-        const {signedUrl} = await res.json()
+        const {signedUrl, key} = await res.json()
         console.log('signedUrl', signedUrl)
-        const url = new URL(signedUrl)
-        console.log('url', url)
-        const params = Object.fromEntries(url.searchParams)
-        const formData = new FormData()
+        // const url = new URL(signedUrl)
+        // console.log('url', url)
+        // const params = Object.fromEntries(url.searchParams)
+        // const formData = new FormData()
         
-        formData.append('Content-Type', uploadedFile.type)
-        formData.append('key', uploadedFile.name)
-        formData.append('file', uploadedFile)
-        Object.entries(params).forEach(([key, value]) => {
-          formData.append(key, value)
-        })
+        // formData.append('Content-Type', uploadedFile.type)
+        // formData.append('key', key)
+        // formData.append('file', uploadedFile)
+        // Object.entries(params).forEach(([key, value]) => {
+        //   formData.append(key, value)
+        // })
   
-        console.log('formData', formData)
-        const res2 = await fetch(url.origin, {
-          method: "POST",
-          body: formData
+        // console.log('formData', formData)
+        // const res2 = await fetch(url.origin, {
+        //   method: "POST",
+        //   body: formData
+        // })
+        // console.log('res2', res2)
+        // if (!res2.ok) {
+        //   throw new Error("Failed to upload file")
+        // }
+        await uploadToS3PresignedUrl(uploadedFile, signedUrl, key)
+        toast({
+          title: "Upload Successful",
+          description: "Your video has been uploaded successfully.",
+          variant: "default"
         })
-        console.log('res2', res2)
-        if (!res2.ok) {
-          throw new Error("Failed to upload file")
-        }
+        onFileChange(null)
       } catch (error) {
         console.error('error', error)
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload video.",
+          variant: "destructive"
+        })
+      }
+      finally {
+        setOpen(false)
+        setIsSubmitting(false)
+        setProgress(0)
       }
     }
   
@@ -130,6 +203,27 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
 
   return (
     <form onSubmit={uploadHandler} className="space-y-8">
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Uploading Video</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            Please wait while your video is being uploaded...<br/>
+            This may take a few minutes. Please do not close the browser or navigate away from this page.
+          </DialogDescription>
+          <div className="flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">{progress.toFixed(2)}%</p>
+            <Progress value={progress} />
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button onClick={abortUpload} variant="outline">Cancel</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+
+      </Dialog>
       <div className="grid grid-cols-1 gap-8">
         <Card>
           <CardContent className="pt-6">
@@ -295,3 +389,4 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
 };
 
 export default UploadForm;
+
