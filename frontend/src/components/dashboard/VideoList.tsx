@@ -54,8 +54,11 @@ const VideoList = () => {
     const fetchVideos = async () => {
       try {
         // Simulate API fetch
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setVideos(mockVideos);
+        // await new Promise((resolve) => setTimeout(resolve, 800));
+        // setVideos(mockVideos);
+        const userVideos = await axios.get("http://localhost:3000/video/get-videos")
+        console.log("Response", userVideos.data)
+        setVideos(userVideos.data.data)
       } catch (error) {
         toast({
           title: "Error",
@@ -115,10 +118,10 @@ const VideoList = () => {
       <Tabs defaultValue="all" value={activeFilter} onValueChange={(v) => setActiveFilter(v as StatusFilter)}>
         <TabsList className="grid h-auto grid-cols-3  md:grid-cols-5 mb-6">
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="transcoding">Transcoding</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="failed">Failed</TabsTrigger>
+          <TabsTrigger value="PENDING">Pending</TabsTrigger>
+          <TabsTrigger value="TRANSCODING">Transcoding</TabsTrigger>
+          <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
+          <TabsTrigger value="FAILED">Failed</TabsTrigger>
         </TabsList>
         
         <TabsContent value={activeFilter} className="mt-0">
