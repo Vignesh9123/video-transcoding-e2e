@@ -19,7 +19,7 @@ const VideoList = () => {
 
   const getVideoStatuses = useCallback(async () => {
     const videoIds = videos
-      .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING")
+      .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING" || vid.status === "UPLOADING")
       .map((vid) => vid.id);
     
     console.log("Getting video statuses for", videoIds);

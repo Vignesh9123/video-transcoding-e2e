@@ -17,6 +17,7 @@ import FormatSelection from "./FormatSelection";
 import ResolutionSelection from "./ResolutionSelection";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "../ui/progress";
+import ProgressDialogBox from "./ProgressDialogBox";
 
 interface UploadFormProps {
   onFileChange: (file: File | null) => void;
@@ -54,23 +55,23 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
       return false;
     }
 
-    if (selectedFormats.length === 0) {
-      toast({
-        title: "No format selected",
-        description: "Please select at least one output format",
-        variant: "destructive",
-      });
-      return false;
-    }
+    // if (selectedFormats.length === 0) {
+    //   toast({
+    //     title: "No format selected",
+    //     description: "Please select at least one output format",
+    //     variant: "destructive",
+    //   });
+    //   return false;
+    // }
 
-    if (selectedResolutions.length === 0) {
-      toast({
-        title: "No resolution selected",
-        description: "Please select at least one resolution",
-        variant: "destructive",
-      });
-      return false;
-    }
+    // if (selectedResolutions.length === 0) {
+    //   toast({
+    //     title: "No resolution selected",
+    //     description: "Please select at least one resolution",
+    //     variant: "destructive",
+    //   });
+    //   return false;
+    // }
 
     return true;
   };
@@ -80,12 +81,11 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', presignedUrl);
     
-    // Optional: Set content-type if your backend expects it
     xhr.setRequestHeader('Content-Type', file.type)
     xhr.setRequestHeader('key', key)
     
     xhrRef.current = xhr;
-    // Track progress
+    
     xhr.upload.onprogress = function (event) {
       if (event.lengthComputable) {
         const percentComplete = (event.loaded / event.total) * 100;
@@ -112,7 +112,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     
     xhr.send(file);
     });
-    }
+  }
 
     const abortUpload = () => {
       if (xhrRef.current) {
@@ -128,6 +128,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     
     const uploadHandler = async(e: React.FormEvent) => {
       e.preventDefault();
+      if(!validateForm()) return
       try {
         if (!uploadedFile) return
         setOpen(true)
@@ -138,7 +139,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            name: uploadedFile.name
+            name:title || uploadedFile.name
           })
         })
         const {signedUrl, key} = await res.json()
@@ -171,6 +172,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
           variant: "default"
         })
         onFileChange(null)
+        navigate("/dashboard")
       } catch (error) {
         console.error('error', error)
         toast({
@@ -203,27 +205,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
 
   return (
     <form onSubmit={uploadHandler} className="space-y-8">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Uploading Video</DialogTitle>
-          </DialogHeader>
-          <DialogDescription>
-            Please wait while your video is being uploaded...<br/>
-            This may take a few minutes. Please do not close the browser or navigate away from this page.
-          </DialogDescription>
-          <div className="flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">{progress.toFixed(2)}%</p>
-            <Progress value={progress} />
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button onClick={abortUpload} variant="outline">Cancel</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-
-      </Dialog>
+      <ProgressDialogBox open={open} setOpen={setOpen} progress={progress} abortUpload={abortUpload} />
       <div className="grid grid-cols-1 gap-8">
         <Card>
           <CardContent className="pt-6">
@@ -327,7 +309,6 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
                   placeholder="Enter video title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  required
                 />
               </div>
               
@@ -344,7 +325,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardContent className="pt-6">
             <Accordion type="single" collapsible defaultValue="formats">
               <AccordionItem value="formats">
@@ -368,7 +349,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <div className="flex justify-end space-x-4">
