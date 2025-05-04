@@ -9,7 +9,7 @@ import VideoCard from "./VideoCard";
 import { mockVideos, Video, VideoStatus } from "@/lib/mock-data";
 import axios from 'axios'
 
-const statusFilters = ["all", "pending", "transcoding", "completed", "failed"] as const;
+const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
 
 const VideoList = () => {
@@ -20,7 +20,7 @@ const VideoList = () => {
 
   const getVideoStatuses = async () => {
     const videoIds = videos
-    .filter((vid) => vid.status === "transcoding" || vid.status === "pending")
+    .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING")
     .map((vid) => vid.id);
 
   if (videoIds.length === 0) return;
