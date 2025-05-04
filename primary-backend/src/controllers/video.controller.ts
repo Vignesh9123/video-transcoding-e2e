@@ -37,4 +37,108 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
         })
     }
 }
+
+export const getVideoStatus = async(req: Request, res: Response)=>{
+    try {
+        const userId = req.user?.id
+        const videoId = req.params.videoId
+        console.log('User id ', userId)
+        console.log('Video id ', videoId)
+        if(!videoId){
+            console.log("Theres no video Id");
+            res.status(400).json({
+                success:false,
+                message:"Please provide Video Id"
+            })
+            return
+        }
+        const video = await prisma.video.findUnique({
+            where:{
+                id: videoId
+            }
+        })
+        
+        if(!video){
+            console.log("Theres no video with this id");
+            res.status(400).json({
+                success:false,
+                message:"Please provide correct video Id"
+            })
+            return
+        }
     
+        // if(video.userId.toString() !== userId?.toString()){
+        //     console.log("This video doesn't belong to this user");
+        //     res.status(403).json({
+        //         success:false,
+        //         message:"This video doesn't belong to this user"
+        //     })
+        //     return
+        // }
+    
+        const status = video.status 
+        const progress = video.progress || 0
+    
+        res.status(200).json({
+            success: true,
+            data:{
+                videoId,
+                status,
+                progress
+            },
+            message:"Status fetched successfully"
+        })
+    } catch (error:any) {
+        console.log("Error", error);
+        res.status(500).json({
+                success:false,
+                message:error.message || "Internal Server Error"
+        })
+    }
+
+}
+    
+export const getVideoStatusBulk = async(req: Request, res: Response)=>{
+    try {
+        const userId = req.user?.id
+        const videos = []
+        const {videoIds}:{videoIds: string[]} = req.body
+        for(let videoId of videoIds){
+            const video = await prisma.video.findUnique({
+                where:{id: videoId}
+            })
+            if(video){
+                // if(video.userId.toString() === userId?.toString())
+                    videos.push(video)
+            }
+        }
+        const responseVideos:{
+            status: string,
+            progress: number,
+            videoId: string
+        }[] = []
+        for(let video of videos){
+            const obj = {
+                status: video.status,
+                progress: video.progress || 0,
+                videoId: video.id
+            }
+            responseVideos.push(obj)
+        }
+    
+        res.status(200).json({
+            success: true,
+            data: responseVideos,
+            message:"Statuses fetched successfully"
+        })
+    } catch (error:any) {
+        console.log("Error", error);
+        res.status(500).json({
+                success:false,
+                message:error.message || "Internal Server Error"
+        })
+    }
+
+    
+    
+}

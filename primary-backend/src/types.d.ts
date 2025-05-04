@@ -1,6 +1,9 @@
-import { User } from "./types"
-
-export {}
+export interface User{
+    id: string
+    username: string
+    email: string
+    password: string
+}
 
 declare global {
     namespace Express {
