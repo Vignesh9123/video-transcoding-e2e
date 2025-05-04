@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoCard from "./VideoCard";
-import { mockVideos, Video } from "@/lib/mock-data";
+import { mockVideos, Video, VideoStatus } from "@/lib/mock-data";
+import axios from 'axios'
 
 const statusFilters = ["all", "pending", "transcoding", "completed", "failed"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -15,6 +16,39 @@ const VideoList = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
+  const [filteredVideos, setFilteredVideos] = useState<Video[]>([])
+
+  const getVideoStatuses = async () => {
+    const videoIds = videos
+    .filter((vid) => vid.status === "transcoding" || vid.status === "pending")
+    .map((vid) => vid.id);
+
+  if (videoIds.length === 0) return;
+
+  try {
+    const { data } = await axios.post('http://localhost:3000/video/get-video-status/bulk', { videoIds });
+
+    const responseData: {
+      status: VideoStatus;
+      progress: number;
+      videoId: string;
+    }[] = data.data;
+
+    setVideos((prevVideos) =>
+      prevVideos.map((video) => {
+        const updated = responseData.find((v) => v.videoId === video.id);
+        if(updated){
+          return { ...video, status: updated.status, progress: updated.progress }
+        }
+        else{
+          return video
+        }
+      })
+    );
+  } catch (error) {
+    console.error("Failed to update video statuses", error);
+  }
+  }
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -36,29 +70,19 @@ const VideoList = () => {
     fetchVideos();
 
     const interval = setInterval(() => {
-      setVideos((currentVideos) =>
-        currentVideos.map((video) => {
-          if (video.status === "pending") {
-            return { ...video, status: "transcoding", progress: 10 };
-          }
-          if (video.status === "transcoding") {
-            const newProgress = (video.progress || 0) + 10;
-            if (newProgress >= 100) {
-              return { ...video, status: "completed", progress: 100 };
-            }
-            return { ...video, progress: newProgress };
-          }
-          return video;
-        })
-      );
+      getVideoStatuses()
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const filteredVideos = videos.filter(
-    (video) => activeFilter === "all" || video.status === activeFilter
-  );
+ useEffect(()=>{
+  setFilteredVideos(()=>{
+    const vids = videos.filter(
+    (video) => activeFilter === "all" || video.status === activeFilter)
+    return vids || videos
+  })
+ }, [activeFilter, videos])
 
   if (isLoading) {
     return (
