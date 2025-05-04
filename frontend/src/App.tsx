@@ -16,6 +16,7 @@ import UploadPage from "./pages/UploadPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/layout/Footer";
+import Test from './pages/Test';
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,14 @@ const AppRoutes = () => (
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/test" 
+          element={
+            <ProtectedRoute>
+              <Test />
             </ProtectedRoute>
           } 
         />

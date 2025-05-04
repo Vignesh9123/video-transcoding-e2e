@@ -112,7 +112,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
         {video.status === "TRANSCODING" && (
           <div className="absolute bottom-0 left-0 w-full bg-background bg-opacity-80 p-2">
             <Progress value={video.progress} className="h-2 w-full" />
-            <p className="text-xs mt-1 text-center">{video.progress}% Complete</p>
+            <p className="text-xs mt-1 text-center">{video.progress.toFixed(2)}% Complete</p>
           </div>
         )}
       </div>
