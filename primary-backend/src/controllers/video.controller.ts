@@ -38,6 +38,30 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
     }
 }
 
+export const getUserVideos = async(req: Request, res: Response)=>{
+    try {
+        // const userId = req.user?.id!;
+        // const videos = await prisma.video.findMany({
+        //     where:{
+        //         userId
+        //     }
+        // }) 
+        const videos = await prisma.video.findMany({})
+        res.status(200).json({
+            data: videos,
+            success: true,
+            message:"Videos fetched successfully"
+        })
+        
+    } catch (error: any) {
+        console.log("Error", error);
+        res.status(500).json({
+                success:false,
+                message:error.message || "Internal Server Error"
+        })
+    }
+}
+
 export const getVideoStatus = async(req: Request, res: Response)=>{
     try {
         const userId = req.user?.id
