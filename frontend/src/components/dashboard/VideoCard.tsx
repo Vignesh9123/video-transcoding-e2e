@@ -18,8 +18,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "@/hooks/use-toast";
 import { Video } from "@/lib/mock-data";
+import {toast} from '@/components/ui/sonner'
+import axios from "axios";
 
 interface VideoCardProps {
   video: Video;
@@ -38,6 +39,18 @@ const VideoCard = ({ video }: VideoCardProps) => {
     }
   };
 
+  const handleShare = async() => {
+    const promise = axios.get("http://localhost:3000/api/video/get-video-url/"+video.id)
+    .then(({data})=>{
+      navigator.clipboard.writeText(data.data);
+    })
+    toast.promise(promise,{
+      loading: "Fetching video URL",
+      success:"Video URL copied to clipboard",
+      error:"Failed to fetch video URL"
+    });
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat("en-US", {
@@ -53,15 +66,12 @@ const VideoCard = ({ video }: VideoCardProps) => {
     setIsDeleting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 800));
-      toast({
-        title: "Video deleted",
+      toast.message("Video deleted",{
         description: "Video has been successfully deleted.",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete video",
-        variant: "destructive",
+      toast.error("Failed to delete video",{
+        description: "Please try again.",
       });
     } finally {
       setIsDeleting(false);
@@ -69,10 +79,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
   };
 
   const handleResendEmail = () => {
-    toast({
-      title: "Notification resent",
-      description: "Email notification has been sent.",
-    });
+    toast("Email notification has been sent.");
   };
 
   return (
@@ -169,7 +176,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
               {video.status === "COMPLETED" && (
                 <>
                   <DropdownMenuItem>Download All</DropdownMenuItem>
-                  <DropdownMenuItem>Share Video</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShare}>Share Video</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
