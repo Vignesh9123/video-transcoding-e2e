@@ -1,13 +1,12 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoCard from "./VideoCard";
-import { mockVideos, Video, VideoStatus } from "@/lib/mock-data";
-import axios from 'axios'
+import { Video, VideoStatus } from "@/lib/mock-data";
+import axios from 'axios';
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -16,49 +15,47 @@ const VideoList = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
-  const [filteredVideos, setFilteredVideos] = useState<Video[]>([])
+  const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
 
-  const getVideoStatuses = async () => {
+  const getVideoStatuses = useCallback(async () => {
     const videoIds = videos
-    .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING")
-    .map((vid) => vid.id);
+      .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING")
+      .map((vid) => vid.id);
+    
+    console.log("Getting video statuses for", videoIds);
 
-  if (videoIds.length === 0) return;
+    if (videoIds.length === 0) return;
 
-  try {
-    const { data } = await axios.post('http://localhost:3000/video/get-video-status/bulk', { videoIds });
+    try {
+      const { data } = await axios.post('http://localhost:3000/api/video/get-video-status/bulk', { videoIds });
 
-    const responseData: {
-      status: VideoStatus;
-      progress: number;
-      videoId: string;
-    }[] = data.data;
+      const responseData: {
+        status: VideoStatus;
+        progress: number;
+        videoId: string;
+      }[] = data.data;
 
-    setVideos((prevVideos) =>
-      prevVideos.map((video) => {
-        const updated = responseData.find((v) => v.videoId === video.id);
-        if(updated){
-          return { ...video, status: updated.status, progress: updated.progress }
-        }
-        else{
-          return video
-        }
-      })
-    );
-  } catch (error) {
-    console.error("Failed to update video statuses", error);
-  }
-  }
+      setVideos((prevVideos) =>
+        prevVideos.map((video) => {
+          const updated = responseData.find((v) => v.videoId === video.id);
+          if (updated) {
+            return { ...video, status: updated.status, progress: updated.progress };
+          } else {
+            return video;
+          }
+        })
+      );
+    } catch (error) {
+      console.error("Failed to update video statuses", error);
+    }
+  }, [videos]); // Dependency on videos
 
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        // Simulate API fetch
-        // await new Promise((resolve) => setTimeout(resolve, 800));
-        // setVideos(mockVideos);
-        const userVideos = await axios.get("http://localhost:3000/video/get-videos")
-        console.log("Response", userVideos.data)
-        setVideos(userVideos.data.data)
+        const userVideos = await axios.get("http://localhost:3000/api/video/get-videos");
+        console.log("Response", userVideos.data);
+        setVideos(userVideos.data.data);
       } catch (error) {
         toast({
           title: "Error",
@@ -71,21 +68,22 @@ const VideoList = () => {
     };
 
     fetchVideos();
+  }, []); // Run only once on component mount
 
+  // Separate effect for polling video statuses
+  useEffect(() => {
     const interval = setInterval(() => {
-      getVideoStatuses()
+      getVideoStatuses();
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [getVideoStatuses]); // Depend on getVideoStatuses
 
- useEffect(()=>{
-  setFilteredVideos(()=>{
-    const vids = videos.filter(
-    (video) => activeFilter === "all" || video.status === activeFilter)
-    return vids || videos
-  })
- }, [activeFilter, videos])
+  useEffect(() => {
+    setFilteredVideos(
+      videos.filter((video) => activeFilter === "all" || video.status === activeFilter)
+    );
+  }, [activeFilter, videos]);
 
   if (isLoading) {
     return (
@@ -116,7 +114,7 @@ const VideoList = () => {
       </div>
 
       <Tabs defaultValue="all" value={activeFilter} onValueChange={(v) => setActiveFilter(v as StatusFilter)}>
-        <TabsList className="grid h-auto grid-cols-3  md:grid-cols-5 mb-6">
+        <TabsList className="grid h-auto grid-cols-3 md:grid-cols-5 mb-6">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="PENDING">Pending</TabsTrigger>
           <TabsTrigger value="TRANSCODING">Transcoding</TabsTrigger>

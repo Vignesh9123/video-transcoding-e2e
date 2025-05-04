@@ -136,12 +136,10 @@ const HeroHeader = () => {
                         transition={{ duration: 1, delay: 0.2 }}
                         className={cn('relative flex flex-wrap items-center justify-between gap-6 py-3 duration-200 lg:gap-0 lg:py-6', scrolled && 'lg:py-4')}>
                         <div className="flex w-full items-center justify-between gap-12 lg:w-auto">
-                            <Link
-                                to="/"
-                                aria-label="home"
+                            <div
                                 className="flex items-center space-x-2">
                                 <Logo />
-                            </Link>
+                            </div>
 
                             <button
                                 onClick={() => setMenuState(!menuState)}
