@@ -46,7 +46,15 @@ export const getUserVideos = async(req: Request, res: Response)=>{
         //         userId
         //     }
         // }) 
-        const videos = await prisma.video.findMany({})
+        const videos = await prisma.video.findMany({
+            orderBy: [{
+                createdAt: 'desc'
+            },{
+                name: 'asc'
+            }
+            ]
+        })
+
         res.status(200).json({
             data: videos,
             success: true,
@@ -165,4 +173,55 @@ export const getVideoStatusBulk = async(req: Request, res: Response)=>{
 
     
     
+}
+
+export const getVideoURL = async(req: Request, res: Response)=>{
+    try {
+        const userId = req.user?.id
+        const videoId = req.params.videoId
+        if(!videoId){
+            console.log("Theres no video Id");
+            res.status(400).json({
+                success:false,
+                message:"Please provide Video Id"
+            })
+            return
+        }
+        
+        const video = await prisma.video.findUnique({
+            where:{
+                id: videoId
+            }
+        })
+        if(!video){
+            console.log("Theres no video with this id");
+            res.status(400).json({
+                success:false,
+                message:"Please provide correct video Id"
+            })
+            return
+        }
+    
+        // if(video.userId.toString() !== userId?.toString()){
+        //     console.log("This video doesn't belong to this user");
+        //     res.status(403).json({
+        //         success:false,
+        //         message:"This video doesn't belong to this user"
+        //     })
+        //     return
+        // }
+        const url = video.url
+        res.status(200).json({
+            success: true,
+            data: url,
+            message:"URL fetched successfully"
+        })
+    } catch (error:any) {
+        console.log("Error", error);
+        res.status(500).json({
+                success:false,
+                message:error.message || "Internal Server Error"
+        })
+    }
+
 }
