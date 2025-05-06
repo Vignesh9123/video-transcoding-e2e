@@ -119,59 +119,64 @@ async function createHLSStream(videoPath, outputPath) {
     let runningIndex = 0;
     const variantPromises = variants.map((variant, index) => {
         return new Promise((resolve, reject) => {
-            const variantPath = `${hlsOutputPath}/${variant.name}`;
-
-            if (!fs.existsSync(variantPath)) {
-                fs.mkdirSync(variantPath, { recursive: true });
-            }
-            
-            masterPlaylist.push(`#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(variant.bitrate) * 1000},RESOLUTION=${variant.resolution.width}x${variant.resolution.height}`);
-            masterPlaylist.push(`${variant.name}/playlist.m3u8`);
-
-            ffmpeg(videoPath)
-                .output(`${variantPath}/playlist.m3u8`)
-                .videoCodec('libx264')
-                .audioCodec('aac')
-                .size(`${variant.resolution.width}x${variant.resolution.height}`)
-                .videoBitrate(variant.bitrate)
-                .addOptions([
-                    '-hls_time 10',
-                    '-hls_list_size 0',
-                    '-hls_segment_type mpegts',
-                    '-hls_segment_filename', `${variantPath}/segment%d.ts`,
-                    '-f hls',
-                    '-profile:v main',
-                    '-crf 23',
-                    '-preset fast',
-                    '-sc_threshold 0',
-                    '-g 48',
-                    '-keyint_min 48',
-                    '-hls_flags delete_segments+append_list',
-                ])
-                .on('end', async() => {
-                    console.log(`HLS variant ${variant.name} completed with index ${index}`);
-                    try {
-                        console.log(`Updating progress for ${variant.name} to ${(runningIndex+1)/variants.length * 100}`)
-                        await prisma.video.update({
-                            where:{
-                                id:process.env.KEY
-                            },
-                            data:{
-                            progress:(runningIndex+1)/variants.length * 100
-                        }
-                    })
-                    }
-                    catch(error){
-                        console.error(`Error updating progress for ${variant.name}: ${error.message}`);
-                    }
-                    runningIndex++;
-                    resolve()
-                })
-                .on('error', (err) => {
-                    console.error(`Error transcoding ${variant.name}: ${err.message}`);
-                    reject(err);
-                })
-                .run();
+           try {
+             const variantPath = `${hlsOutputPath}/${variant.name}`;
+ 
+             if (!fs.existsSync(variantPath)) {
+                 fs.mkdirSync(variantPath, { recursive: true });
+             }
+             
+             masterPlaylist.push(`#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(variant.bitrate) * 1000},RESOLUTION=${variant.resolution.width}x${variant.resolution.height}`);
+             masterPlaylist.push(`${variant.name}/playlist.m3u8`);
+ 
+             ffmpeg(videoPath)
+                 .output(`${variantPath}/playlist.m3u8`)
+                 .videoCodec('libx264')
+                 .audioCodec('aac')
+                 .size(`${variant.resolution.width}x${variant.resolution.height}`)
+                 .videoBitrate(variant.bitrate)
+                 .addOptions([
+                     '-hls_time 10',
+                     '-hls_list_size 0',
+                     '-hls_segment_type mpegts',
+                     '-hls_segment_filename', `${variantPath}/segment%d.ts`,
+                     '-f hls',
+                     '-profile:v main',
+                     '-crf 23',
+                     '-preset fast',
+                     '-sc_threshold 0',
+                     '-g 48',
+                     '-keyint_min 48',
+                     '-hls_flags delete_segments+append_list',
+                 ])
+                 .on('end', async() => {
+                     console.log(`HLS variant ${variant.name} completed with index ${index}`);
+                     try {
+                         console.log(`Updating progress for ${variant.name} to ${(runningIndex+1)/variants.length * 100}`)
+                         await prisma.video.update({
+                             where:{
+                                 id:process.env.KEY
+                             },
+                             data:{
+                             progress:(runningIndex+1)/variants.length * 100
+                         }
+                     })
+                     }
+                     catch(error){
+                         console.error(`Error updating progress for ${variant.name}: ${error.message}`);
+                     }
+                     runningIndex++;
+                     resolve()
+                 })
+                 .on('error', (err) => {
+                     console.error(`Error transcoding ${variant.name}: ${err.message}`);
+                     reject(err);
+                 })
+                 .run();
+           } catch (error) {
+               console.error(`Error transcoding ${variant.name}: ${error.message}`);
+               reject(error);
+           }
         });
     });
 
