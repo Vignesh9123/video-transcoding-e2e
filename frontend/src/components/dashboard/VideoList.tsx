@@ -129,7 +129,7 @@ const VideoList = () => {
                 <VideoCard key={video.id} video={video} />
               ))}
             </div>
-          ) : (
+          ) : activeFilter == "all" ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-10">
                 <p className="text-muted-foreground mb-4">No videos found</p>
@@ -138,7 +138,16 @@ const VideoList = () => {
                 </Button>
               </CardContent>
             </Card>
-          )}
+          )
+          :
+          (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-10">
+                <p className="text-muted-foreground mb-4">No videos found</p>
+              </CardContent>
+            </Card>
+          )
+        }
         </TabsContent>
       </Tabs>
     </div>
