@@ -13,17 +13,20 @@ export const googleLogin = async (req: Request, res: Response) => {
         if (user) {
             const token = generateToken(user.id);
             res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-            return res.status(200).json({ user, token });
+            res.status(200).json({ user, token });
+            return
         }
         if (!name || !email) throw new Error("Missing required fields");
         user = await prisma.user.create({ data: { name, email, loginType: "google" } });
         if (!user) throw new Error("Error while signing up");
         const token = generateToken(user.id);
         res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-        return res.status(200).json({ user, token });
+        res.status(200).json({ user, token });
+        return
     }
     catch (error: any) {
-        return res.status(500).json({ error: error?.message || "Internal server error" });
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return
     }
 }
 
@@ -32,19 +35,23 @@ export const currentUser = async (req: Request, res: Response) => {
         const userId = req.user?.id;
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if(!user) throw new Error("Error while fetching user");
-        return res.status(200).json({ user });
+        res.status(200).json({ user });
+        return
     }
     catch(error:any){
-        return res.status(500).json({ error: error?.message || "Internal server error" });
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return
     }
 }
 
 export const logout = async (req: Request, res: Response) => {
     try{
         res.clearCookie("token", { httpOnly: true , sameSite: "none", secure: true });
-        return res.status(200).json({ message: "Logout successful" });
+        res.status(200).json({ message: "Logout successful" });
+        return
     }
     catch(error:any){
-        return res.status(500).json({ error: error?.message || "Internal server error" });
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return
     }
 }
