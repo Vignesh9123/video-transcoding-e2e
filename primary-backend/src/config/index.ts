@@ -10,6 +10,7 @@ export const config = {
     AWS_SECRET_ACCESS_KEY: String(process.env.AWS_SECRET_ACCESS_KEY || ''),
     S3_UPLOAD_BUCKET_NAME: String(process.env.S3_UPLOAD_BUCKET_NAME || ''),
     VideoStatusEnum: VideoStatus,
+    FIREBASE_PROJECT_ID: String(process.env.FIREBASE_PROJECT_ID || ''),
 }
 
 export const prisma = new PrismaClient()
