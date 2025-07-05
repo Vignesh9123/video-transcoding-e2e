@@ -96,9 +96,9 @@ async function createHLSStream(videoPath, outputPath) {
         //     name: '1080p'
         // },
         {
-            resolution: { width: 1280, height: 720 },
-            bitrate: '3000k',
-            name: '720p'
+            resolution: { width: 640, height: 360 },
+            bitrate: '500k',
+            name: '360p'
         },
         {
             resolution: { width: 854, height: 480 },
@@ -106,10 +106,12 @@ async function createHLSStream(videoPath, outputPath) {
             name: '480p'
         },
         {
-            resolution: { width: 640, height: 360 },
-            bitrate: '500k',
-            name: '360p'
-        }
+            resolution: { width: 1280, height: 720 },
+            bitrate: '3000k',
+            name: '720p'
+        },
+        
+        
     ];
 
     const hlsOutputPath = outputPath.replace('.mp4', '');
