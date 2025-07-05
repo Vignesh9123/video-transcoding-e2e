@@ -50,7 +50,7 @@ export function HeroSection() {
                             </motion.div>
                         </div>
                         <div className="aspect-[2/3] absolute inset-1 overflow-hidden rounded-3xl border border-black/10  sm:aspect-video lg:rounded-[3rem] dark:border-white/5">
-                           <HLSPlayer src="https://ik.imagekit.io/lrigu76hy/tailark/dna-video.mp4" />
+                           <HLSPlayer src="/hero.mp4" />
                         </div>
                     </div>
                 </section>
