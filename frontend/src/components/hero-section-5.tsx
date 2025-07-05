@@ -31,7 +31,7 @@ export function HeroSection() {
                                         asChild
                                         size="lg"
                                         className="h-12 rounded-full pl-5 pr-3 text-base">
-                                        <Link to={isAuthenticated ? '/dashboard' : '/signup'}>
+                                        <Link to={isAuthenticated ? '/dashboard' : '/login'}>
                                             <span className="text-nowrap">Get Started</span>
                                             <ChevronRight className="ml-1" />
                                         </Link>
@@ -198,13 +198,7 @@ const HeroHeader = () => {
                                         <span>Login</span>
                                     </Link>
                                 </Button>
-                                <Button
-                                    asChild
-                                    size="sm">
-                                    <Link to="/signup">
-                                        <span>Sign Up</span>
-                                    </Link>
-                                </Button>
+                               
                             </div>
                             )}
                         </div>

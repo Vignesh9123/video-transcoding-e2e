@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
+    "firebase": "^11.10.0",
     "framer-motion": "^12.9.2",
     "hls.js": "^1.6.2",
     "input-otp": "^1.2.4",

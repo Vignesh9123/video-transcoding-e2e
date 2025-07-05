@@ -8,9 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 import LandingPage from "./pages/LandingPage";
-import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import UploadPage from "./pages/UploadPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -46,7 +44,6 @@ const AppRoutes = () => (
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<RegisterPage />} />
         
         {/* Protected Routes */}
         <Route 

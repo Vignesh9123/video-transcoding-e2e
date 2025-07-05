@@ -74,9 +74,6 @@ const Navbar = () => {
               <Button variant="ghost" asChild>
                 <Link to="/login">Sign In</Link>
               </Button>
-              <Button asChild>
-                <Link to="/signup">Sign Up</Link>
-              </Button>
             </div>
           )}
         </div>

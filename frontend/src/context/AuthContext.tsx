@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import axios from 'axios';
 
 interface AuthUser {
   id: string;
@@ -13,7 +14,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (idtoken: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
 }
@@ -28,43 +29,66 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('transcodeUser');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+
+  const getUser = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/auth/current-user", {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        withCredentials: true,
+      });
+      setUser(response.data.user);
+    } catch (error) {
+        setUser(null);
+        localStorage.removeItem("token");
     }
+  }
+  useEffect(() => {
+    getUser();
     setIsLoading(false);
   }, []);
-
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (idtoken: string): Promise<void> => {
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      if (password === 'password') {
-        const foundUser = mockUsers.find(u => u.email === email) || {
-          id: Date.now().toString(),
-          email,
-          name: email.split('@')[0]
-        };
-        
-        setUser(foundUser);
-        localStorage.setItem('transcodeUser', JSON.stringify(foundUser));
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${foundUser.name}!`,
+      const userData = {
+        idtoken
+      };
+      const signInPromise = axios
+        .post(
+          "http://localhost:3000/api/auth/google-login",
+          userData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        )
+        .then((response) => {
+          localStorage.setItem("token", response.data.token);
+          setUser(response.data.user);
+          navigate("/dashboard");
+
         });
-        navigate('/dashboard');
-      } else {
-        throw new Error('Invalid credentials');
-      }
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "An error occurred during login",
-        variant: "destructive",
+
+      toast.promise(signInPromise, {
+        loading: "Signing in...",
+        success: "Signed in successfully!",
+        error: "Failed to sign in. Please try again.",
       });
-    } finally {
+
+    } catch (error) {
+      if (error.status === 429) {
+        toast.error("Too Many Requests - please try again later");
+        navigate("/");
+        return;
+      }
+      toast.error("Failed to sign in. Please try again.");
+      return;
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -77,30 +101,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUser = { id: Date.now().toString(), email, name };
       setUser(newUser);
       localStorage.setItem('transcodeUser', JSON.stringify(newUser));
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully!",
-      });
+      toast.success("Account created successfully!");
       navigate('/dashboard');
     } catch (error) {
-      toast({
-        title: "Signup failed",
-        description: error instanceof Error ? error.message : "An error occurred during signup",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "An error occurred during signup");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = (): void => {
+  const logout = async () => {
+    try {
+      await axios.get("http://localhost:3000/api/auth/logout", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+      },
+      withCredentials: true
+    })
     setUser(null);
-    localStorage.removeItem('transcodeUser');
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully.",
-    });
+    localStorage.removeItem("token");
+    toast.success("Logged out successfully.");
     navigate('/');
+    } catch (error) {
+      toast.error("Failed to log out. Please try again.");
+    }
   };
 
   return (
