@@ -12,5 +12,6 @@ RUN npm install
 COPY prisma .
 RUN npx prisma generate
 COPY index.js .
+COPY sendMail.js .
 
 CMD ["node", "index.js"]

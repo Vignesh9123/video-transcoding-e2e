@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 import ffmpeg  from 'fluent-ffmpeg'
 import { PrismaClient } from '@prisma/client'
+import { sendEmail } from './sendMail'
 const prisma = new PrismaClient()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -290,6 +291,80 @@ async function HLSStreaming(){
                 url:`https://${process.env.AWS_TRANSCODED_OUTPUT_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${process.env.KEY}/master.m3u8`
             }
         })
+        const message = `
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video Transcoding Complete</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    .header {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .content {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .button {
+      display: inline-block;
+      background-color: #007BFF;
+      color: white;
+      padding: 12px 20px;
+      margin-top: 20px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .footer {
+      font-size: 12px;
+      color: #777;
+      margin-top: 30px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Your Video Is Ready!</div>
+    <div class="content">
+      <p>Hello,</p>
+      <p>Your video titled <strong>${updatedVideo.title}</strong> has been successfully transcoded and is now ready for viewing.</p>
+      <p>You can access the video using the button below:</p>
+      <a href="https://hlsjs.video-dev.org/demo/?src=${encodeURI(updatedVideo.url)}" class="button">View Video</a>
+      <p>If you did not initiate this task or believe this was an error, please disregard this message.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; 2024 The Campus Network. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+        `
+        // await sendEmail({
+        //     email:DBVideo.email,
+        //     subject:`Video Transcoded`,
+        //     message
+        // })
 
         console.log('Video transcoded successfully',updatedVideo)
     }
