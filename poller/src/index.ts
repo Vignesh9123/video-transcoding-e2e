@@ -130,6 +130,14 @@ async function init() {
                                     {
                                         name:'DATABASE_URL',
                                         value: process.env.DATABASE_URL
+                                    },
+                                    {
+                                        name:'SENDER_EMAIL',
+                                        value: process.env.SENDER_EMAIL
+                                    },
+                                    {
+                                        name:'MAIL_APP_PASSWORD',
+                                        value: process.env.MAIL_APP_PASSWORD
                                     }
                                 ]
                             }
