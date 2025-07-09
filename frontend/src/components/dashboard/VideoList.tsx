@@ -27,7 +27,13 @@ const VideoList = () => {
     if (videoIds.length === 0) return;
 
     try {
-      const { data } = await axios.post('http://localhost:3000/api/video/get-video-status/bulk', { videoIds });
+      const { data } = await axios.post('http://localhost:3000/api/video/get-video-status/bulk', { videoIds }, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        withCredentials: true
+      });
 
       const responseData: {
         status: VideoStatus;
@@ -53,7 +59,9 @@ const VideoList = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const userVideos = await axios.get("http://localhost:3000/api/video/get-videos");
+        const userVideos = await axios.get("http://localhost:3000/api/video/get-videos", {
+          withCredentials: true
+        });
         console.log("Response", userVideos.data);
         setVideos(userVideos.data.data);
       } catch (error) {

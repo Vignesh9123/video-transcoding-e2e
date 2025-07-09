@@ -18,6 +18,7 @@ import ResolutionSelection from "./ResolutionSelection";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "../ui/progress";
 import ProgressDialogBox from "./ProgressDialogBox";
+import axios from "axios";
 
 interface UploadFormProps {
   onFileChange: (file: File | null) => void;
@@ -133,16 +134,8 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         if (!uploadedFile) return
         setOpen(true)
         setIsSubmitting(true)
-        const res = await fetch("http://localhost:3000/api/video/get-presigned-url", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            name:title || uploadedFile.name
-          })
-        })
-        const {signedUrl, key} = await res.json()
+        const res = await axios.post('http://localhost:3000/api/video/get-presigned-url', {name: uploadedFile.name}, {withCredentials: true})
+        const {signedUrl, key} = res.data
         console.log('signedUrl', signedUrl)
         // const url = new URL(signedUrl)
         // console.log('url', url)

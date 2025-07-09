@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 import ffmpeg  from 'fluent-ffmpeg'
 import { PrismaClient } from '@prisma/client'
-import { sendEmail } from './sendMail'
+import { sendEmail } from './sendMail.js'
 const prisma = new PrismaClient()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -20,7 +20,6 @@ const s3Client = new S3Client({
 
 
 
-// adaptiveBitrateStreaming() is a function that takes a video file as input and generates multiple versions of the video at different resolutions and bitrates but it does not split the video into chunks/segments (which is done in HLSStreaming()).
 async function adaptiveBitrateStreaming(){
     const RESOLUTIONS = [
         // { name: '1080p', width: 1920, height: 1080 },
@@ -171,8 +170,24 @@ async function createHLSStream(videoPath, outputPath) {
                      runningIndex++;
                      resolve()
                  })
-                 .on('error', (err) => {
+                 .on('error', async(err) => {
                      console.error(`Error transcoding ${variant.name}: ${err.message}`);
+                     if(err.message.includes("SIGABRT")){
+                        if(++runningIndex == variants.length){
+                           try {
+                             await prisma.video.update({
+                                 where:{
+                                     id:process.env.KEY
+                                 },
+                                 data:{
+                                     status:'FAILED'
+                                 }
+                             })
+                           } catch (error) {
+                               console.error(`Error updating status for ${variant.name}: ${error.message}`);
+                           }
+                        }
+                     }
                      reject(err);
                  })
                  .run();
@@ -278,7 +293,7 @@ async function HLSStreaming(){
         const videoPath = path.join(__dirname,'videos',process.env.KEY)
         const outputPath = path.join(__dirname,'transcoded',`${process.env.KEY.split('.')[0]}.mp4`)
         const hlsPath = await createHLSStream(videoPath, outputPath)
-        const baseKey = `${path.basename(hlsPath)}`; // e.g., "videos/video-123"
+        const baseKey = `${path.basename(hlsPath)}`; 
         
         await uploadDirectoryToS3(hlsPath, baseKey);
         console.log('Successfully uploaded all HLS files to S3');
@@ -289,7 +304,11 @@ async function HLSStreaming(){
             data:{
                 status:'COMPLETED',
                 url:`https://${process.env.AWS_TRANSCODED_OUTPUT_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${process.env.KEY}/master.m3u8`
+            },
+            include:{
+                User:true
             }
+            
         })
         const message = `
         <!DOCTYPE html>
@@ -348,7 +367,7 @@ async function HLSStreaming(){
     <div class="header">Your Video Is Ready!</div>
     <div class="content">
       <p>Hello,</p>
-      <p>Your video titled <strong>${updatedVideo.title}</strong> has been successfully transcoded and is now ready for viewing.</p>
+      <p>Your video titled <strong>${updatedVideo.name}</strong> has been successfully transcoded and is now ready for viewing.</p>
       <p>You can access the video using the button below:</p>
       <a href="https://hlsjs.video-dev.org/demo/?src=${encodeURI(updatedVideo.url)}" class="button">View Video</a>
       <p>If you did not initiate this task or believe this was an error, please disregard this message.</p>
@@ -360,11 +379,11 @@ async function HLSStreaming(){
 </body>
 </html>
         `
-        // await sendEmail({
-        //     email:DBVideo.email,
-        //     subject:`Video Transcoded`,
-        //     message
-        // })
+        await sendEmail({
+            email: updatedVideo.User.email,
+            subject:`Video Transcoded`,
+            message
+        })
 
         console.log('Video transcoded successfully',updatedVideo)
     }

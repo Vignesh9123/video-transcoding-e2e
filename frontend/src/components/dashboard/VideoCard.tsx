@@ -40,7 +40,9 @@ const VideoCard = ({ video }: VideoCardProps) => {
   };
 
   const handleShare = async() => {
-    const promise = axios.get("http://localhost:3000/api/video/get-video-url/"+video.id)
+    const promise = axios.get("http://localhost:3000/api/video/get-video-url/"+video.id, {
+      withCredentials: true
+    })
     .then(({data})=>{
       navigator.clipboard.writeText(data.data);
     })
@@ -65,7 +67,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800)); //TODO: Replace with actual API call
       toast.message("Video deleted",{
         description: "Video has been successfully deleted.",
       });
