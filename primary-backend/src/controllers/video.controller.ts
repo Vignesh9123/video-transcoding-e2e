@@ -5,9 +5,11 @@ import { config, prisma } from "../config";
 export const getPresignedUrl = async(req: Request, res: Response) => {
     try {
         const {name} = req.body
+        const {id} = req.user
         const video = await prisma.video.create({
             data:{
-                name
+                name,
+                userId: id
             }
         })
         const s3Client = new S3Client({
@@ -40,13 +42,11 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
 
 export const getUserVideos = async(req: Request, res: Response)=>{
     try {
-        // const userId = req.user?.id!;
-        // const videos = await prisma.video.findMany({
-        //     where:{
-        //         userId
-        //     }
-        // }) 
+        const userId = req.user?.id!;
         const videos = await prisma.video.findMany({
+            where: {
+                userId
+            },
             orderBy: [{
                 createdAt: 'desc'
             },{
@@ -99,14 +99,14 @@ export const getVideoStatus = async(req: Request, res: Response)=>{
             return
         }
     
-        // if(video.userId.toString() !== userId?.toString()){
-        //     console.log("This video doesn't belong to this user");
-        //     res.status(403).json({
-        //         success:false,
-        //         message:"This video doesn't belong to this user"
-        //     })
-        //     return
-        // }
+        if(video.userId.toString() !== userId?.toString()){
+            console.log("This video doesn't belong to this user");
+            res.status(403).json({
+                success:false,
+                message:"This video doesn't belong to this user"
+            })
+            return
+        }
     
         const status = video.status 
         const progress = video.progress || 0
@@ -140,7 +140,7 @@ export const getVideoStatusBulk = async(req: Request, res: Response)=>{
                 where:{id: videoId}
             })
             if(video){
-                // if(video.userId.toString() === userId?.toString())
+                if(video.userId.toString() === userId?.toString())
                     videos.push(video)
             }
         }
@@ -202,14 +202,14 @@ export const getVideoURL = async(req: Request, res: Response)=>{
             return
         }
     
-        // if(video.userId.toString() !== userId?.toString()){
-        //     console.log("This video doesn't belong to this user");
-        //     res.status(403).json({
-        //         success:false,
-        //         message:"This video doesn't belong to this user"
-        //     })
-        //     return
-        // }
+        if(video.userId.toString() !== userId?.toString()){
+            console.log("This video doesn't belong to this user");
+            res.status(403).json({
+                success:false,
+                message:"This video doesn't belong to this user"
+            })
+            return
+        }
         const url = video.url
         res.status(200).json({
             success: true,
