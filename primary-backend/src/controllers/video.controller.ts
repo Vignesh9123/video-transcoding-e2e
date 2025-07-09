@@ -9,7 +9,8 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
         const video = await prisma.video.create({
             data:{
                 name,
-                userId: id
+                userId: id,
+                organization: "cmcvo2eai0000gu0vqpm1k64v"
             }
         })
         const s3Client = new S3Client({
@@ -33,6 +34,7 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
             success: true
         })
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             message: 'Failed to generate presigned URL',
             success: false
@@ -128,6 +130,48 @@ export const getVideoStatus = async(req: Request, res: Response)=>{
         })
     }
 
+}
+
+export const deleteVideo = async(req: Request, res: Response)=>{
+    const videoId = req.params.videoId
+    try {
+        const video = await prisma.video.findFirst({
+            where: {
+                id: videoId
+            }
+        })
+        if(!video){
+            console.log("Theres no video with this id");
+            res.status(400).json({
+                success:false,
+                message:"Please provide correct video Id"
+            })
+            return
+        }
+        if(video.userId.toString() !== req.user?.id?.toString()){
+            console.log("This video doesn't belong to this user");
+            res.status(403).json({
+                success:false,
+                message:"This video doesn't belong to this user"
+            })
+            return
+        }
+        await prisma.video.delete({
+            where: {
+                id: videoId
+            }
+        })
+        res.status(200).json({
+            success: true,
+            message:"Video deleted successfully"
+        })
+    } catch (error:any) {
+        console.log("Error", error);
+        res.status(500).json({
+                success:false,
+                message:error.message || "Internal Server Error"
+        })
+    }
 }
     
 export const getVideoStatusBulk = async(req: Request, res: Response)=>{

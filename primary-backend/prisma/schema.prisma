@@ -21,8 +21,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Videos Video[]
-  organization String
-  Organization Organization @relation(fields: [organization], references: [id])
+  organization String?
+  Organization Organization? @relation(fields: [organization], references: [id])
   roleInOrg Role @default(VIEWER)
 }
 
