@@ -8,6 +8,8 @@ interface AuthUser {
   id: string;
   email: string;
   name: string;
+  roleInOrg: string;
+  organization: string;
 }
 
 interface AuthContextType {
@@ -15,14 +17,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (idtoken: string) => Promise<void>;
-  signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-const mockUsers: AuthUser[] = [
-  { id: '1', email: 'user@example.com', name: 'Demo User' }
-];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -49,6 +47,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     getUser();
     setIsLoading(false);
   }, []);
+
+  useEffect(()=>{
+    if(user){
+      if(!user.organization){
+        navigate("/create-org")
+      }
+    }
+  }, [user])
   const login = async (idtoken: string): Promise<void> => {
     setIsLoading(true);
     try {
@@ -69,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .then((response) => {
           localStorage.setItem("token", response.data.token);
           setUser(response.data.user);
-          navigate("/dashboard");
+          // navigate("/dashboard");
 
         });
 
@@ -93,22 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (email: string, password: string, name: string): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const newUser = { id: Date.now().toString(), email, name };
-      setUser(newUser);
-      localStorage.setItem('transcodeUser', JSON.stringify(newUser));
-      toast.success("Account created successfully!");
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An error occurred during signup");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const logout = async () => {
     try {
@@ -135,7 +126,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isLoading,
         login,
-        signup,
         logout,
       }}
     >

@@ -56,6 +56,10 @@ const VideoList = () => {
     }
   }, [videos]); // Dependency on videos
 
+  const deleteVideo = (videoId: string) => {
+    setVideos((prevVideos) => prevVideos.filter((video) => video.id !== videoId));
+  }
+
   useEffect(() => {
     const fetchVideos = async () => {
       try {
@@ -134,7 +138,7 @@ const VideoList = () => {
           {filteredVideos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard key={video.id} video={video} videoDeleted={deleteVideo} />
               ))}
             </div>
           ) : activeFilter == "all" ? (

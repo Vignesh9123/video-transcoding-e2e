@@ -12,7 +12,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/dashboard");
+      navigate("/admit-to-org");
     }
   }, [isAuthenticated, navigate]);
 

@@ -15,6 +15,8 @@ import ProfilePage from "./pages/ProfilePage";
 import NotFound from "./pages/NotFound";
 import Footer from "./components/layout/Footer";
 import Test from './pages/Test';
+import CreateOrgPage from './pages/CreateOrgPage';
+import AdmitToOrgPage from './pages/AdmitToOrg';
 
 const queryClient = new QueryClient();
 
@@ -67,6 +69,22 @@ const AppRoutes = () => (
           element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/create-org" 
+          element={
+            <ProtectedRoute>
+              <CreateOrgPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admit-to-org" 
+          element={
+            <ProtectedRoute>
+              <AdmitToOrgPage />
             </ProtectedRoute>
           } 
         />

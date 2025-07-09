@@ -24,6 +24,7 @@ import axios from "axios";
 
 interface VideoCardProps {
   video: Video;
+  videoDeleted: (id: string) => void;
 }
 
 const VideoCard = ({ video }: VideoCardProps) => {
@@ -67,9 +68,15 @@ const VideoCard = ({ video }: VideoCardProps) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800)); //TODO: Replace with actual API call
-      toast.message("Video deleted",{
-        description: "Video has been successfully deleted.",
+      const deletePromise =  axios.delete("http://localhost:3000/api/video/delete-video/"+video.id, {
+        withCredentials: true
+      }).then(()=>{
+        
+      })
+      toast.promise(deletePromise, {
+        loading: "Deleting video",
+        success: "Video deleted successfully",
+        error: "Failed to delete video",
       });
     } catch (error) {
       toast.error("Failed to delete video",{
@@ -132,9 +139,9 @@ const VideoCard = ({ video }: VideoCardProps) => {
       </CardHeader>
 
       <CardContent className="flex-grow">
-        <p className="text-sm text-muted-foreground line-clamp-2">
+        {/*<p className="text-sm text-muted-foreground line-clamp-2">
           {video.description || "No description provided"}
-        </p>
+        </p>*/}
         
         {video.status === "COMPLETED" && (
           <div className="mt-4">
