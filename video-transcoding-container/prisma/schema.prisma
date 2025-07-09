@@ -21,6 +21,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Videos Video[]
+  organization String?
+  Organization Organization? @relation(fields: [organization], references: [id])
+  roleInOrg Role @default(VIEWER)
 }
 
 model Video {
@@ -29,10 +32,29 @@ model Video {
   status    VideoStatus @default(UPLOADING)
   progress  Float       @default(0)
   url       String?
-  userId String  @default("cmcq3ol2h0000l30vktireo3x")
+  userId String
   User User @relation(fields: [userId], references: [id])
+  organization String 
+  Organization Organization @relation(fields: [organization], references: [id])
+  isPublic Boolean @default(false)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+}
+
+model Organization{
+  id String @id @default(cuid())
+  name String
+  users User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  videos Video[]
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
 }
 
 enum VideoStatus {
