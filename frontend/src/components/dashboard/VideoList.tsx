@@ -57,6 +57,7 @@ const VideoList = () => {
   }, [videos]); // Dependency on videos
 
   const deleteVideo = (videoId: string) => {
+    console.log("Deleting video", videoId);
     setVideos((prevVideos) => prevVideos.filter((video) => video.id !== videoId));
   }
 

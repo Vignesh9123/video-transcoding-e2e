@@ -7,12 +7,17 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Link } from "react-router-dom";
 
 const LoginPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/admit-to-org");
+      if (user && user.organization) {
+        navigate("/dashboard");
+      }
+      else {
+        navigate("/create-org");
+      }
     }
   }, [isAuthenticated, navigate]);
 

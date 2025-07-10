@@ -22,7 +22,7 @@ const queryClient = new QueryClient();
 
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading , user} = useAuth();
 
   if (isLoading) {
     return (
@@ -34,6 +34,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user && !user.organization) {
+    return <Navigate to="/create-org" replace />;
   }
 
   return <>{children}</>;
@@ -75,9 +79,9 @@ const AppRoutes = () => (
         <Route 
           path="/create-org" 
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <CreateOrgPage />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           } 
         />
         <Route 

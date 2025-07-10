@@ -134,7 +134,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         if (!uploadedFile) return
         setOpen(true)
         setIsSubmitting(true)
-        const res = await axios.post('http://localhost:3000/api/video/get-presigned-url', {name: uploadedFile.name}, {withCredentials: true})
+        const res = await axios.post('http://localhost:3000/api/video/get-presigned-url', {name: title || uploadedFile.name}, {withCredentials: true})
         const {signedUrl, key} = res.data
         console.log('signedUrl', signedUrl)
         // const url = new URL(signedUrl)

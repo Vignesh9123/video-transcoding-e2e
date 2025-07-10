@@ -25,7 +25,6 @@ type InviteFormValues = z.infer<typeof inviteSchema>;
 const AdmitUsersPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [invites, setInvites] = useState<Array<{ email: string; role: string; id: string }>>([]);
 
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
@@ -36,7 +35,10 @@ const AdmitUsersPage = () => {
     },
   });
 
+  
+
   const onSubmit = async (values: InviteFormValues) => {
+    console.log(values);
     try {
       const response = await axios.post("http://localhost:3000/api/org/admit", {
         email: values.email,
@@ -49,21 +51,12 @@ const AdmitUsersPage = () => {
           withCredentials: true
       })
       
-      // Add to invites list
-      const newInvite = {
-        id: Date.now().toString(),
-        email: values.email,
-        role: values.role,
-      };
-      
-      setInvites(prev => [...prev, newInvite]);
-      
+            
       toast({
-        title: "Invitation sent",
-        description: `Invitation sent to ${values.email} as ${values.role}`,
+        title: "User Admitted",
+        description: `User with email ${values.email} is added to your organization as ${values.role} `,
       });
       
-      // Reset form
       form.reset({
         email: "",
         role: "",
@@ -79,37 +72,9 @@ const AdmitUsersPage = () => {
     }
   };
 
-  const removeInvite = (id: string) => {
-    setInvites(prev => prev.filter(invite => invite.id !== id));
-    toast({
-      title: "Invitation removed",
-      description: "The invitation has been removed from the list.",
-    });
-  };
 
-  const sendAllInvitations = async () => {
-    if (invites.length === 0) return;
-    
-    try {
-      // Simulate sending all invitations
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "All invitations sent",
-        description: `Successfully sent ${invites.length} invitation(s)`,
-      });
-      
-      setInvites([]);
-      form.reset();
-      
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send some invitations. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -132,9 +97,8 @@ const AdmitUsersPage = () => {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form  className="space-y-6">
                  
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -190,45 +154,7 @@ const AdmitUsersPage = () => {
             </CardContent>
           </Card>
 
-          {invites.length > 0 && (
-            <Card className="mt-6">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Pending Invitations</CardTitle>
-                    <CardDescription>
-                      {invites.length} user(s) ready to be invited
-                    </CardDescription>
-                  </div>
-                  <Button onClick={sendAllInvitations}>
-                    Send All Invitations
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {invites.map((invite) => (
-                    <div
-                      key={invite.id}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{invite.email}</p>
-                        <p className="text-sm text-muted-foreground capitalize">{invite.role}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeInvite(invite.id)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+         
         </div>
       </div>
     </div>

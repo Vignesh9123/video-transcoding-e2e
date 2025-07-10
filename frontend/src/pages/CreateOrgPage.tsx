@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -14,7 +14,14 @@ const CreateOrgPage = () => {
   const [orgName, setOrgName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser, isAuthenticated } = useAuth();
+
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +52,14 @@ const CreateOrgPage = () => {
         title: "Organization created",
         description: `${orgName} has been created successfully!`,
       });
+      console.log('response', response.data);
+      setUser(
+        {
+          ...user,
+          organization: response.data.org.id,
+          roleInOrg: "OWNER"
+        }
+      )
       
       // Redirect to dashboard after successful creation
       navigate("/dashboard");

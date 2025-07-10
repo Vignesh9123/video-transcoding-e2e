@@ -14,6 +14,7 @@ interface AuthUser {
 
 interface AuthContextType {
   user: AuthUser | null;
+  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (idtoken: string) => Promise<void>;
@@ -75,7 +76,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .then((response) => {
           localStorage.setItem("token", response.data.token);
           setUser(response.data.user);
-          // navigate("/dashboard");
+          if(!response.data.user.organization){
+            navigate("/create-org")
+          }
+          else{
+            navigate("/dashboard")
+          }
+
 
         });
 
@@ -123,6 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         isAuthenticated: !!user,
         isLoading,
         login,

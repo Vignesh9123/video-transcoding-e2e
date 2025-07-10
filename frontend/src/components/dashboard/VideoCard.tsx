@@ -27,7 +27,7 @@ interface VideoCardProps {
   videoDeleted: (id: string) => void;
 }
 
-const VideoCard = ({ video }: VideoCardProps) => {
+const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   
   const getStatusColor = (status: Video["status"]) => {
@@ -71,7 +71,7 @@ const VideoCard = ({ video }: VideoCardProps) => {
       const deletePromise =  axios.delete("http://localhost:3000/api/video/delete-video/"+video.id, {
         withCredentials: true
       }).then(()=>{
-        
+        if(videoDeleted) videoDeleted(video.id);
       })
       toast.promise(deletePromise, {
         loading: "Deleting video",
