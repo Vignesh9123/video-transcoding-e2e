@@ -6,11 +6,17 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
     try {
         const {name} = req.body
         const {id} = req.user
+        const user = await prisma.user.findFirst({
+            where:{
+                id
+            }
+        })
+        if(!user?.organization) throw new Error('User is not part of any organization')
         const video = await prisma.video.create({
             data:{
                 name,
                 userId: id,
-                organization: "cmcvo2eai0000gu0vqpm1k64v"
+                organization: user?.organization
             }
         })
         const s3Client = new S3Client({
