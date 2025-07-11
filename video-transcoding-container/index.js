@@ -1,9 +1,9 @@
-import {GetObjectCommand, S3Client, PutObjectCommand} from '@aws-sdk/client-s3'
+import { GetObjectCommand, S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import fs from 'fs'
-import path  from 'path'
+import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import ffmpeg  from 'fluent-ffmpeg'
+import ffmpeg from 'fluent-ffmpeg'
 import { PrismaClient } from '@prisma/client'
 import { sendEmail } from './sendMail.js'
 const prisma = new PrismaClient()
@@ -20,7 +20,7 @@ const s3Client = new S3Client({
 
 
 
-async function adaptiveBitrateStreaming(){
+async function adaptiveBitrateStreaming() {
     const RESOLUTIONS = [
         // { name: '1080p', width: 1920, height: 1080 },
         { name: '720p', width: 1280, height: 720 },
@@ -29,47 +29,47 @@ async function adaptiveBitrateStreaming(){
     ]
     try {
         const command = new GetObjectCommand({
-            Bucket:process.env.BUCKET,
-            Key:process.env.KEY
+            Bucket: process.env.BUCKET,
+            Key: process.env.KEY
         })
         console.log(`Downloading ${process.env.KEY} from ${process.env.BUCKET}`)
         const response = await s3Client.send(command)
         console.log("Downloading completed", process.env.KEY)
         const body = await response.Body.transformToByteArray()
         console.log(`Writing file ${process.env.KEY}`)
-        if(!fs.existsSync(path.join(__dirname,'videos'))){
-            fs.mkdirSync(path.join(__dirname,'videos'))
+        if (!fs.existsSync(path.join(__dirname, 'videos'))) {
+            fs.mkdirSync(path.join(__dirname, 'videos'))
         }
-        const file = fs.createWriteStream(path.join(__dirname,'videos',process.env.KEY))
+        const file = fs.createWriteStream(path.join(__dirname, 'videos', process.env.KEY))
         file.write(body)
         file.end()
-        console.log(`File written to ${path.join(__dirname,'videos',process.env.KEY)}`)
-        const videoPath = path.join(__dirname,'videos',process.env.KEY)
+        console.log(`File written to ${path.join(__dirname, 'videos', process.env.KEY)}`)
+        const videoPath = path.join(__dirname, 'videos', process.env.KEY)
         const promises = RESOLUTIONS.map((resolution) => {
-            if(!fs.existsSync(path.join(__dirname,'transcoded'))){
-                fs.mkdirSync(path.join(__dirname,'transcoded'))
+            if (!fs.existsSync(path.join(__dirname, 'transcoded'))) {
+                fs.mkdirSync(path.join(__dirname, 'transcoded'))
             }
-            const outputPath = path.join(__dirname,'transcoded',`${process.env.KEY.split('.')[0]}-${resolution.name}.mp4`)
+            const outputPath = path.join(__dirname, 'transcoded', `${process.env.KEY.split('.')[0]}-${resolution.name}.mp4`)
             return new Promise((resolve, reject) => ffmpeg(videoPath)
-            .output(outputPath)
-            .videoCodec('libx264')
-            .audioCodec('aac')
-            .size(`${resolution.width}x${resolution.height}`)
-            .on('end', () => {
-                console.log(`Video transcoded to ${outputPath}`)
-                resolve(outputPath)
-            })
-            .on('error', (err) => {
-                console.log(`Error transcoding video: ${err.message}`)
-            })
-            .format('mp4')
-            .run()
+                .output(outputPath)
+                .videoCodec('libx264')
+                .audioCodec('aac')
+                .size(`${resolution.width}x${resolution.height}`)
+                .on('end', () => {
+                    console.log(`Video transcoded to ${outputPath}`)
+                    resolve(outputPath)
+                })
+                .on('error', (err) => {
+                    console.log(`Error transcoding video: ${err.message}`)
+                })
+                .format('mp4')
+                .run()
             )
         })
-    
+
         const results = await Promise.all(promises)
-    
-        results.forEach(async(result) => {
+
+        results.forEach(async (result) => {
             const params = {
                 Bucket: process.env.AWS_TRANSCODED_OUTPUT_BUCKET_NAME,
                 Key: path.basename(result),
@@ -87,6 +87,15 @@ async function adaptiveBitrateStreaming(){
 }
 
 // adaptiveBitrateStreaming()
+
+const getVideoDuration = (path) => {
+    return new Promise((resolve, reject) => {
+        ffmpeg.ffprobe(path, (err, metadata) => {
+            if (err) return reject(err);
+            resolve(metadata.format.duration);
+        });
+    });
+};
 
 async function createHLSStream(videoPath, outputPath) {
     const variants = [
@@ -110,8 +119,8 @@ async function createHLSStream(videoPath, outputPath) {
             bitrate: '3000k',
             name: '720p'
         },
-        
-        
+
+
     ];
 
     const hlsOutputPath = outputPath.replace('.mp4', '');
@@ -119,82 +128,104 @@ async function createHLSStream(videoPath, outputPath) {
     masterPlaylist.push('#EXTM3U');
     masterPlaylist.push('#EXT-X-VERSION:3');
     let runningIndex = 0;
+    const totalDuration = await getVideoDuration(videoPath);
+    const expectedSegments = Math.ceil(totalDuration / 10);
+    // const updateInterval = Math.floor(expectedSegments / 10); 
+
+    let segmentCount = 0;
+    let lastReportedStep = 0;
     const variantPromises = variants.map((variant, index) => {
         return new Promise((resolve, reject) => {
-           try {
-             const variantPath = `${hlsOutputPath}/${variant.name}`;
- 
-             if (!fs.existsSync(variantPath)) {
-                 fs.mkdirSync(variantPath, { recursive: true });
-             }
-             
-             masterPlaylist.push(`#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(variant.bitrate) * 1000},RESOLUTION=${variant.resolution.width}x${variant.resolution.height}`);
-             masterPlaylist.push(`${variant.name}/playlist.m3u8`);
- 
-             ffmpeg(videoPath)
-                 .output(`${variantPath}/playlist.m3u8`)
-                 .videoCodec('libx264')
-                 .audioCodec('aac')
-                 .size(`${variant.resolution.width}x${variant.resolution.height}`)
-                 .videoBitrate(variant.bitrate)
-                 .addOptions([
-                     '-hls_time 10',
-                     '-hls_list_size 0',
-                     '-hls_segment_type mpegts',
-                     '-hls_segment_filename', `${variantPath}/segment%d.ts`,
-                     '-f hls',
-                     '-profile:v main',
-                     '-crf 23',
-                     '-preset fast',
-                     '-sc_threshold 0',
-                     '-g 48',
-                     '-keyint_min 48',
-                     '-hls_flags delete_segments+append_list',
-                 ])
-                 .on('end', async() => {
-                     console.log(`HLS variant ${variant.name} completed with index ${index}`);
-                     try {
-                         console.log(`Updating progress for ${variant.name} to ${(runningIndex+1)/variants.length * 100}`)
-                         await prisma.video.update({
-                             where:{
-                                 id:process.env.KEY
-                             },
-                             data:{
-                             progress:(runningIndex+1)/variants.length * 100
-                         }
-                     })
-                     }
-                     catch(error){
-                         console.error(`Error updating progress for ${variant.name}: ${error.message}`);
-                     }
-                     runningIndex++;
-                     resolve()
-                 })
-                 .on('error', async(err) => {
-                     console.error(`Error transcoding ${variant.name}: ${err.message}`);
-                     if(err.message.includes("SIGABRT")){
-                        if(++runningIndex == variants.length){
-                           try {
-                             await prisma.video.update({
-                                 where:{
-                                     id:process.env.KEY
-                                 },
-                                 data:{
-                                     status:'FAILED'
-                                 }
-                             })
-                           } catch (error) {
-                               console.error(`Error updating status for ${variant.name}: ${error.message}`);
-                           }
+            try {
+                const variantPath = `${hlsOutputPath}/${variant.name}`;
+
+                if (!fs.existsSync(variantPath)) {
+                    fs.mkdirSync(variantPath, { recursive: true });
+                }
+
+                masterPlaylist.push(`#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(variant.bitrate) * 1000},RESOLUTION=${variant.resolution.width}x${variant.resolution.height}`);
+                masterPlaylist.push(`${variant.name}/playlist.m3u8`);
+
+
+
+                ffmpeg(videoPath)
+                    .output(`${variantPath}/playlist.m3u8`)
+                    .videoCodec('libx264')
+                    .audioCodec('aac')
+                    .size(`${variant.resolution.width}x${variant.resolution.height}`)
+                    .videoBitrate(variant.bitrate)
+                    .addOptions([
+                        '-hls_time 10',
+                        '-hls_list_size 0',
+                        '-hls_segment_type mpegts',
+                        '-hls_segment_filename', `${variantPath}/segment%d.ts`,
+                        '-f hls',
+                        '-profile:v main',
+                        '-crf 23',
+                        '-preset fast',
+                        '-sc_threshold 0',
+                        '-g 48',
+                        '-keyint_min 48',
+                        '-hls_flags delete_segments+append_list',
+                    ])
+                    .on('end', async () => {
+                        console.log(`HLS variant ${variant.name} completed with index ${index}`);
+                        //  try {
+                        //      console.log(`Updating progress for ${variant.name} to ${(runningIndex+1)/variants.length * 100}`)
+                        //      await prisma.video.update({
+                        //          where:{
+                        //              id:process.env.KEY
+                        //          },
+                        //          data:{
+                        //          progress:(runningIndex+1)/variants.length * 100
+                        //      }
+                        //  })
+                        //  }
+                        //  catch(error){
+                        //      console.error(`Error updating progress for ${variant.name}: ${error.message}`);
+                        //  }
+                        //  runningIndex++;
+                        resolve()
+                    })
+                    .on('stderr', (line) => {
+                        if (line.includes('Opening') && line.includes('.ts')) {
+                            segmentCount++;
+                            const currentStep = Math.floor((segmentCount / expectedSegments) * 10);
+                            if (currentStep > lastReportedStep) {
+                                lastReportedStep = currentStep;
+                                const progressPercent = ((runningIndex + (segmentCount / expectedSegments)) / variants.length) * 100;
+                                prisma.video.update({
+                                    where: { id: process.env.KEY },
+                                    data: { progress: progressPercent }
+                                }).catch(e => console.error('Failed progress update', e));
+                            }
                         }
-                     }
-                     reject(err);
-                 })
-                 .run();
-           } catch (error) {
-               console.error(`Error transcoding ${variant.name}: ${error.message}`);
-               reject(error);
-           }
+                    })
+                    .on('error', async (err) => {
+                        console.error(`Error transcoding ${variant.name}: ${err.message}`);
+                        if (err.message.includes("SIGABRT")) {
+                            if (++runningIndex == variants.length) {
+                                try {
+                                    await prisma.video.update({
+                                        where: {
+                                            id: process.env.KEY
+                                        },
+                                        data: {
+                                            status: 'FAILED'
+                                        }
+                                    })
+                                } catch (error) {
+                                    console.error(`Error updating status for ${variant.name}: ${error.message}`);
+                                }
+                            }
+                        }
+                        reject(err);
+                    })
+                    .run();
+            } catch (error) {
+                console.error(`Error transcoding ${variant.name}: ${error.message}`);
+                reject(error);
+            }
         });
     });
 
@@ -217,10 +248,10 @@ async function createHLSStream(videoPath, outputPath) {
 
 async function uploadDirectoryToS3(directoryPath, baseKey) {
     const files = await fs.promises.readdir(directoryPath, { withFileTypes: true });
-    
+
     for (const file of files) {
         const fullPath = path.join(directoryPath, file.name);
-        
+
         if (file.isDirectory()) {
             // Recursively upload subdirectories
             await uploadDirectoryToS3(fullPath, path.join(baseKey, file.name));
@@ -260,55 +291,55 @@ function getContentType(filename) {
 }
 
 // HLSStreaming() is the function that takes a video file from S3 and transcodes it to HLS format (break the video into smaller chunks and different resolutions) and uploads it to S3
-async function HLSStreaming(){
+async function HLSStreaming() {
     try {
-       const DBVideo = await prisma.video.update({
-        where:{
-            id:process.env.KEY
-        },
-        data:{
-            status:'TRANSCODING'
+        const DBVideo = await prisma.video.update({
+            where: {
+                id: process.env.KEY
+            },
+            data: {
+                status: 'TRANSCODING'
+            }
+        })
+        if (!DBVideo) {
+            console.log('Video not found')
+            return
         }
-       })
-       if(!DBVideo){
-        console.log('Video not found')
-        return
-       }
         const command = new GetObjectCommand({
-            Bucket:process.env.BUCKET,
-            Key:process.env.KEY
+            Bucket: process.env.BUCKET,
+            Key: process.env.KEY
         })
         console.log(`Downloading ${process.env.KEY} from ${process.env.BUCKET}`)
         const response = await s3Client.send(command)
         console.log("Downloading completed", process.env.KEY)
         const body = await response.Body.transformToByteArray()
         console.log(`Writing file ${process.env.KEY}`)
-        if(!fs.existsSync(path.join(__dirname,'videos'))){
-            fs.mkdirSync(path.join(__dirname,'videos'))
+        if (!fs.existsSync(path.join(__dirname, 'videos'))) {
+            fs.mkdirSync(path.join(__dirname, 'videos'))
         }
-        const file = fs.createWriteStream(path.join(__dirname,'videos',process.env.KEY))
+        const file = fs.createWriteStream(path.join(__dirname, 'videos', process.env.KEY))
         file.write(body)
         file.end()
-        console.log(`File written to ${path.join(__dirname,'videos',process.env.KEY)}`)
-        const videoPath = path.join(__dirname,'videos',process.env.KEY)
-        const outputPath = path.join(__dirname,'transcoded',`${process.env.KEY.split('.')[0]}.mp4`)
+        console.log(`File written to ${path.join(__dirname, 'videos', process.env.KEY)}`)
+        const videoPath = path.join(__dirname, 'videos', process.env.KEY)
+        const outputPath = path.join(__dirname, 'transcoded', `${process.env.KEY.split('.')[0]}.mp4`)
         const hlsPath = await createHLSStream(videoPath, outputPath)
-        const baseKey = `${path.basename(hlsPath)}`; 
-        
+        const baseKey = `${path.basename(hlsPath)}`;
+
         await uploadDirectoryToS3(hlsPath, baseKey);
         console.log('Successfully uploaded all HLS files to S3');
         const updatedVideo = await prisma.video.update({
-            where:{
-                id:process.env.KEY
+            where: {
+                id: process.env.KEY
             },
-            data:{
-                status:'COMPLETED',
-                url:`https://${process.env.AWS_TRANSCODED_OUTPUT_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${process.env.KEY}/master.m3u8`
+            data: {
+                status: 'COMPLETED',
+                url: `https://${process.env.AWS_TRANSCODED_OUTPUT_BUCKET_NAME}.s3.ap-south-1.amazonaws.com/${process.env.KEY}/master.m3u8`
             },
-            include:{
-                User:true
+            include: {
+                User: true
             }
-            
+
         })
         const message = `
         <!DOCTYPE html>
@@ -373,7 +404,7 @@ async function HLSStreaming(){
       <p>If you did not initiate this task or believe this was an error, please disregard this message.</p>
     </div>
     <div class="footer">
-      <p>&copy; 2024 The Campus Network. All rights reserved.</p>
+      <p>&copy; 2025 StreamForge. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -381,13 +412,13 @@ async function HLSStreaming(){
         `
         await sendEmail({
             email: updatedVideo.User.email,
-            subject:`Video Transcoded`,
+            subject: `Video Transcoded`,
             message
         })
 
-        console.log('Video transcoded successfully',updatedVideo)
+        console.log('Video transcoded successfully', updatedVideo)
     }
-    catch(error){
+    catch (error) {
         console.log(error)
     }
 }
