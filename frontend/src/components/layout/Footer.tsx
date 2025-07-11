@@ -49,7 +49,7 @@ const Footer = () => {
                 <polygon points="23 7 16 12 23 17 23 7" />
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
               </svg>
-              <span className="font-bold text-xl">TranscodeCanvas</span>
+              <span className="font-bold text-xl">StreamForge</span>
             </div>
             <p className="text-sm text-muted-foreground">
             Transform your videos with our powerful transcoding platform. Compress and optimize with ease.            </p>
@@ -128,7 +128,7 @@ const Footer = () => {
         
         <div className="border-t pt-8 mt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} TranscodeCanvas. All rights reserved.
+            © {new Date().getFullYear()} StreamForge. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0">
             <p className="text-sm text-muted-foreground">

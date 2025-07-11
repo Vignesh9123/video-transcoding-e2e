@@ -41,7 +41,7 @@ const LoginPage = () => {
                 <polygon points="23 7 16 12 23 17 23 7" />
                 <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
               </svg>
-              <span className="font-bold text-xl">TranscodeCanvas</span>
+              <span className="font-bold text-xl">StreamForge</span>
             </Link>
           </div>
           <div>
@@ -52,7 +52,7 @@ const LoginPage = () => {
 
       <div className="flex flex-col items-center justify-center flex-grow px-4 py-12">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome to TranscodeCanvas</h1>
+          <h1 className="text-3xl font-bold mb-2">Welcome to StreamForge</h1>
           <p className="text-muted-foreground">
             Sign in to manage and transcode your videos
           </p>
@@ -60,7 +60,7 @@ const LoginPage = () => {
         <LoginForm />
       </div>
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2025 TranscodeCanvas. All rights reserved.</p>
+        <p>© 2025 StreamForge. All rights reserved.</p>
       </footer>
     </div>
   );
