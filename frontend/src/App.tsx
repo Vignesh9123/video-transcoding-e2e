@@ -110,7 +110,7 @@ const AppRoutes = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="system" storageKey="transcodecanvas-theme">
+    <ThemeProvider defaultTheme="system" storageKey="streamforge-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
