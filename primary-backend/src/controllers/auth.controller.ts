@@ -11,7 +11,7 @@ export const googleLogin = async (req: Request, res: Response) => {
         const { name, email } = decodedToken
         let user = await prisma.user.findUnique({ where: { email, loginType: "google" } });
         if (user) {
-            const token = generateToken(user.id);
+            const token = generateToken({id:user.id});
             res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
             res.status(200).json({ user, token });
             return
@@ -19,7 +19,7 @@ export const googleLogin = async (req: Request, res: Response) => {
         if (!name || !email) throw new Error("Missing required fields");
         user = await prisma.user.create({ data: { name, email, loginType: "google" } });
         if (!user) throw new Error("Error while signing up");
-        const token = generateToken(user.id);
+        const token = generateToken({id:user.id});
         res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
         res.status(200).json({ user, token });
         return

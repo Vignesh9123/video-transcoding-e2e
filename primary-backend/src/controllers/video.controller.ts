@@ -1,19 +1,20 @@
 import { Request, Response } from "express";
-import {PutObjectCommand, S3Client} from "@aws-sdk/client-s3"
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config, prisma } from "../config";
-export const getPresignedUrl = async(req: Request, res: Response) => {
+import { generateToken } from "../utils";
+export const getPresignedUrl = async (req: Request, res: Response) => {
     try {
-        const {name} = req.body
-        const {id} = req.user
+        const { name } = req.body
+        const { id } = req.user
         const user = await prisma.user.findFirst({
-            where:{
+            where: {
                 id
             }
         })
-        if(!user?.organization) throw new Error('User is not part of any organization')
+        if (!user?.organization) throw new Error('User is not part of any organization')
         const video = await prisma.video.create({
-            data:{
+            data: {
                 name,
                 userId: id,
                 organization: user?.organization
@@ -31,7 +32,7 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
             Key: video.id
         })
         const signedUrl = await getSignedUrl(s3Client, command, {
-            expiresIn: 60 * 60          
+            expiresIn: 60 * 60
         })
         res.status(200).json({
             key: video.id,
@@ -48,7 +49,7 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
     }
 }
 
-export const getUserVideos = async(req: Request, res: Response)=>{
+export const getUserVideos = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id!;
         const user = await prisma.user.findUnique({
@@ -56,41 +57,41 @@ export const getUserVideos = async(req: Request, res: Response)=>{
                 id: userId
             }
         })
-        if(!user?.organization) throw new Error('User is not part of any organization')
-        if(user.roleInOrg == "OWNER") {
+        if (!user?.organization) throw new Error('User is not part of any organization')
+        if (user.roleInOrg == "OWNER") {
             const videos = await prisma.video.findMany({
                 where: {
                     organization: user.organization
                 },
                 orderBy: [{
                     createdAt: 'desc'
-                },{
+                }, {
                     name: 'asc'
                 }
                 ],
-                include:{
-                   User:{
-                       select: {
-                           name: true,
-                           email: true
-                       } 
-                   } 
+                include: {
+                    User: {
+                        select: {
+                            name: true,
+                            email: true
+                        }
+                    }
                 }
             })
             res.status(200).json({
                 data: videos,
                 success: true,
-                message:"Videos fetched successfully"
+                message: "Videos fetched successfully"
             })
         }
-        else if(user.roleInOrg == "EDITOR"){
+        else if (user.roleInOrg == "EDITOR") {
             const videos = await prisma.video.findMany({
                 where: {
                     userId: userId
                 },
                 orderBy: [{
                     createdAt: 'desc'
-                },{
+                }, {
                     name: 'asc'
                 }
                 ]
@@ -98,7 +99,7 @@ export const getUserVideos = async(req: Request, res: Response)=>{
             res.status(200).json({
                 data: videos,
                 success: true,
-                message:"Videos fetched successfully"
+                message: "Videos fetched successfully"
             })
         }
         else {
@@ -109,95 +110,95 @@ export const getUserVideos = async(req: Request, res: Response)=>{
                 },
                 orderBy: [{
                     createdAt: 'desc'
-                },{
+                }, {
                     name: 'asc'
                 }
                 ],
-                include:{
-                   User:{
-                       select: {
-                           name: true,
-                           email: true
-                       } 
-                   } 
+                include: {
+                    User: {
+                        select: {
+                            name: true,
+                            email: true
+                        }
+                    }
                 }
             })
             res.status(200).json({
                 data: videos,
                 success: true,
-                message:"Videos fetched successfully"
+                message: "Videos fetched successfully"
             })
         }
     } catch (error: any) {
         console.log("Error", error);
         res.status(500).json({
-                success:false,
-                message:error.message || "Internal Server Error"
+            success: false,
+            message: error.message || "Internal Server Error"
         })
     }
 }
 
-export const getVideoStatus = async(req: Request, res: Response)=>{
+export const getVideoStatus = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id
         const videoId = req.params.videoId
         console.log('User id ', userId)
         console.log('Video id ', videoId)
-        if(!videoId){
+        if (!videoId) {
             console.log("Theres no video Id");
             res.status(400).json({
-                success:false,
-                message:"Please provide Video Id"
+                success: false,
+                message: "Please provide Video Id"
             })
             return
         }
         const video = await prisma.video.findUnique({
-            where:{
+            where: {
                 id: videoId
             }
         })
-        
-        if(!video){
+
+        if (!video) {
             console.log("Theres no video with this id");
             res.status(400).json({
-                success:false,
-                message:"Please provide correct video Id"
+                success: false,
+                message: "Please provide correct video Id"
             })
             return
         }
-    
-        if(video.userId.toString() !== userId?.toString()){
+
+        if (video.userId.toString() !== userId?.toString()) {
             console.log("This video doesn't belong to this user");
             res.status(403).json({
-                success:false,
-                message:"This video doesn't belong to this user"
+                success: false,
+                message: "This video doesn't belong to this user"
             })
             return
         }
-    
-        const status = video.status 
+
+        const status = video.status
         const progress = video.progress || 0
-    
+
         res.status(200).json({
             success: true,
-            data:{
+            data: {
                 videoId,
                 status,
                 progress
             },
-            message:"Status fetched successfully"
+            message: "Status fetched successfully"
         })
-    } catch (error:any) {
+    } catch (error: any) {
         console.log("Error", error);
         res.status(500).json({
-                success:false,
-                message:error.message || "Internal Server Error"
+            success: false,
+            message: error.message || "Internal Server Error"
         })
     }
 
 }
 
-export const deleteVideo = async(req: Request, res: Response)=>{
+export const deleteVideo = async (req: Request, res: Response) => {
     const videoId = req.params.videoId
     try {
         const video = await prisma.video.findFirst({
@@ -205,19 +206,19 @@ export const deleteVideo = async(req: Request, res: Response)=>{
                 id: videoId
             }
         })
-        if(!video){
+        if (!video) {
             console.log("Theres no video with this id");
             res.status(400).json({
-                success:false,
-                message:"Please provide correct video Id"
+                success: false,
+                message: "Please provide correct video Id"
             })
             return
         }
-        if(video.userId.toString() !== req.user?.id?.toString()){
+        if (video.userId.toString() !== req.user?.id?.toString()) {
             console.log("This video doesn't belong to this user");
             res.status(403).json({
-                success:false,
-                message:"This video doesn't belong to this user"
+                success: false,
+                message: "This video doesn't belong to this user"
             })
             return
         }
@@ -228,37 +229,37 @@ export const deleteVideo = async(req: Request, res: Response)=>{
         })
         res.status(200).json({
             success: true,
-            message:"Video deleted successfully"
+            message: "Video deleted successfully"
         })
-    } catch (error:any) {
+    } catch (error: any) {
         console.log("Error", error);
         res.status(500).json({
-                success:false,
-                message:error.message || "Internal Server Error"
+            success: false,
+            message: error.message || "Internal Server Error"
         })
     }
 }
-    
-export const getVideoStatusBulk = async(req: Request, res: Response)=>{
+
+export const getVideoStatusBulk = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id
         const videos = []
-        const {videoIds}:{videoIds: string[]} = req.body
-        for(let videoId of videoIds){
+        const { videoIds }: { videoIds: string[] } = req.body
+        for (let videoId of videoIds) {
             const video = await prisma.video.findUnique({
-                where:{id: videoId}
+                where: { id: videoId }
             })
-            if(video){
-                if(video.userId.toString() === userId?.toString())
+            if (video) {
+                if (video.userId.toString() === userId?.toString())
                     videos.push(video)
             }
         }
-        const responseVideos:{
+        const responseVideos: {
             status: string,
             progress: number,
             videoId: string
         }[] = []
-        for(let video of videos){
+        for (let video of videos) {
             const obj = {
                 status: video.status,
                 progress: video.progress || 0,
@@ -266,70 +267,134 @@ export const getVideoStatusBulk = async(req: Request, res: Response)=>{
             }
             responseVideos.push(obj)
         }
-    
+
         res.status(200).json({
             success: true,
             data: responseVideos,
-            message:"Statuses fetched successfully"
+            message: "Statuses fetched successfully"
         })
-    } catch (error:any) {
+    } catch (error: any) {
         console.log("Error", error);
         res.status(500).json({
-                success:false,
-                message:error.message || "Internal Server Error"
+            success: false,
+            message: error.message || "Internal Server Error"
         })
     }
 
-    
-    
+
+
 }
 
-export const getVideoURL = async(req: Request, res: Response)=>{
+export const getVideoURL = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id
         const videoId = req.params.videoId
-        if(!videoId){
+        if (!videoId) {
             console.log("Theres no video Id");
             res.status(400).json({
-                success:false,
-                message:"Please provide Video Id"
+                success: false,
+                message: "Please provide Video Id"
             })
             return
         }
-        
+
         const video = await prisma.video.findUnique({
-            where:{
+            where: {
                 id: videoId
             }
         })
-        if(!video){
+        if (!video) {
             console.log("Theres no video with this id");
             res.status(400).json({
-                success:false,
-                message:"Please provide correct video Id"
+                success: false,
+                message: "Please provide correct video Id"
             })
             return
         }
-    
-        if(video.userId.toString() !== userId?.toString()){
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        if (!user) {
+            console.log("Theres no user with this id");
+            res.status(400).json({
+                success: false,
+                message: "Please provide correct user Id"
+            })
+            return
+        }
+        if (!video.url) {
+            console.log("Theres no url for this video");
+            res.status(400).json({
+                success: false,
+                message: "Please provide correct video Id"
+            })
+            return
+        }
+        if (user.organization != video.organization) {
             console.log("This video doesn't belong to this user");
             res.status(403).json({
-                success:false,
-                message:"This video doesn't belong to this user"
+                success: false,
+                message: "This video doesn't belong to this user"
             })
             return
         }
-        const url = video.url
-        res.status(200).json({
-            success: true,
-            data: url,
-            message:"URL fetched successfully"
-        })
-    } catch (error:any) {
+        if (user.roleInOrg == "OWNER") {
+            const token = generateToken({ videoId: video.id, userId: user.id })
+            if(!token) throw new Error("Internal Server Error");
+            const url = video.url+"?token="+token
+            res.status(200).json({
+                success: true,
+                data: url,
+                message: "URL fetched successfully"
+            })
+            return
+        }
+        if (user.roleInOrg == "EDITOR") {
+            if (video.userId.toString() !== userId?.toString()) {
+                console.log("This video doesn't belong to this user");
+                res.status(403).json({
+                    success: false,
+                    message: "This video doesn't belong to this user"
+                })
+                return
+            }
+            const token = generateToken({ videoId: video.id, userId: user.id })
+            if(!token) throw new Error("Internal Server Error");
+            const url = video.url+"?token="+token
+            res.status(200).json({
+                success: true,
+                data: url,
+                message: "URL fetched successfully"
+            })
+            return
+        }
+        if (user.roleInOrg == "VIEWER") {
+            if (!video.isPublic) {
+                console.log("This video is not public");
+                res.status(403).json({
+                    success: false,
+                    message: "This video is not public"
+                })
+                return
+            }
+            const token = generateToken({ videoId: video.id, userId: user.id })
+            if(!token) throw new Error("Internal Server Error");
+            const url = video.url+"?token="+token
+            res.status(200).json({
+                success: true,
+                data: url,
+                message: "URL fetched successfully"
+            })
+            return
+        }
+        throw new Error('User is not part of any organization')
+    } catch (error: any) {
         console.log("Error", error);
         res.status(500).json({
-                success:false,
-                message:error.message || "Internal Server Error"
+            success: false,
+            message: error.message || "Internal Server Error"
         })
     }
 
