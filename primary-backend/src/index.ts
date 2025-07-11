@@ -9,8 +9,8 @@ dotenv.config()
 
 app.use(cors(
     {
-        origin: ['http://localhost:8080'],
-        credentials: true
+        origin: ['http://localhost:8080', 'https://hlsjs.video-dev.org'],
+        credentials: true,
     }
 ))
 app.use(cookieParser())

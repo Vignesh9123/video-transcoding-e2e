@@ -340,7 +340,7 @@ export const getVideoURL = async (req: Request, res: Response) => {
             })
             return
         }
-        const streamUrl = 'http://localhost:3000/api/video/stream'
+        const streamUrl = 'http://localhost:3000/api/stream'
         if (user.roleInOrg == "OWNER") {
             const token = generateToken({ videoId: video.id, userId: user.id })
             if(!token) throw new Error("Internal Server Error");
