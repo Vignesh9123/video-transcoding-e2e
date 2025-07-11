@@ -51,24 +51,67 @@ export const getPresignedUrl = async(req: Request, res: Response) => {
 export const getUserVideos = async(req: Request, res: Response)=>{
     try {
         const userId = req.user?.id!;
-        const videos = await prisma.video.findMany({
+        const user = await prisma.user.findUnique({
             where: {
-                userId
-            },
-            orderBy: [{
-                createdAt: 'desc'
-            },{
-                name: 'asc'
+                id: userId
             }
-            ]
         })
-
-        res.status(200).json({
-            data: videos,
-            success: true,
-            message:"Videos fetched successfully"
-        })
-        
+        if(!user?.organization) throw new Error('User is not part of any organization')
+        if(user.roleInOrg == "OWNER") {
+            const videos = await prisma.video.findMany({
+                where: {
+                    organization: user.organization
+                },
+                orderBy: [{
+                    createdAt: 'desc'
+                },{
+                    name: 'asc'
+                }
+                ]
+            })
+            res.status(200).json({
+                data: videos,
+                success: true,
+                message:"Videos fetched successfully"
+            })
+        }
+        else if(user.roleInOrg == "EDITOR"){
+            const videos = await prisma.video.findMany({
+                where: {
+                    userId: userId
+                },
+                orderBy: [{
+                    createdAt: 'desc'
+                },{
+                    name: 'asc'
+                }
+                ]
+            })
+            res.status(200).json({
+                data: videos,
+                success: true,
+                message:"Videos fetched successfully"
+            })
+        }
+        else {
+            const videos = await prisma.video.findMany({
+                where: {
+                    organization: user.organization,
+                    isPublic: true
+                },
+                orderBy: [{
+                    createdAt: 'desc'
+                },{
+                    name: 'asc'
+                }
+                ]
+            })
+            res.status(200).json({
+                data: videos,
+                success: true,
+                message:"Videos fetched successfully"
+            })
+        }
     } catch (error: any) {
         console.log("Error", error);
         res.status(500).json({
