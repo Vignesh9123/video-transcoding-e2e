@@ -4,9 +4,35 @@ import Navbar from "@/components/layout/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const ProfilePage = () => {
   const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [organizationDetails, setOrganizationDetails] = useState<{
+    name: string;
+    userCount: number;
+  }>(null);
+  async function fetchOrganization() {
+      const response = await axios.get(`http://localhost:3000/api/org/data/${user.organization}`,{
+          headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("token")}`
+          },
+          withCredentials: true
+      })
+      console.log('response', response.data);
+      setOrganizationDetails({
+        name: response.data.name,
+        userCount: response.data.userCount
+      });
+  }
+  useEffect(() => {
+    if(user){
+      fetchOrganization();
+    }
+  }, [user])
 
   const handleNotificationChange = () => {
     toast({
@@ -82,6 +108,24 @@ const ProfilePage = () => {
               </CardContent>
             </Card>
 
+           {organizationDetails && <Card>
+              <CardHeader>
+                <CardTitle>Organization</CardTitle>
+                <CardDescription>View your organization details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Name</h3>
+                    <p className="text-base">{organizationDetails?.name}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">User Count</h3>
+                    <p className="text-base">{organizationDetails?.userCount}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>}
             {/* <Card>
               <CardHeader>
                 <CardTitle>API Access</CardTitle>

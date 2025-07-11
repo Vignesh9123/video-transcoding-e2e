@@ -81,17 +81,15 @@ const VideoList = () => {
     };
 
     fetchVideos();
-  }, []); // Run only once on component mount
+  }, []); 
 
-  // Separate effect for polling video statuses
   useEffect(() => {
     const interval = setInterval(() => {
       getVideoStatuses();
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [getVideoStatuses]); // Depend on getVideoStatuses
-
+  }, [getVideoStatuses]); 
   useEffect(() => {
     setFilteredVideos(
       videos.filter((video) => activeFilter === "all" || video.status === activeFilter)

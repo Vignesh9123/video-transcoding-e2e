@@ -39,14 +39,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         withCredentials: true,
       });
       setUser(response.data.user);
+      console.log("User with data fetched", response.data.user)
     } catch (error) {
         setUser(null);
         localStorage.removeItem("token");
     }
+    finally{
+      setIsLoading(false);
+  }
   }
   useEffect(() => {
+    setIsLoading(true);
     getUser();
-    setIsLoading(false);
   }, []);
 
   useEffect(()=>{

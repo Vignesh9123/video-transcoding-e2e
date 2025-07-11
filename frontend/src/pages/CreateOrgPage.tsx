@@ -14,11 +14,11 @@ const CreateOrgPage = () => {
   const [orgName, setOrgName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { user, setUser, isAuthenticated } = useAuth();
+  const { user, setUser, isAuthenticated, isLoading: authLoading } = useAuth();
 
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate("/login");
     }
   }, [user, navigate]);

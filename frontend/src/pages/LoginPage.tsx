@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -9,17 +9,18 @@ import { Link } from "react-router-dom";
 const LoginPage = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const {pathname} = useLocation()
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (user && user.organization) {
+      if (user && user.organization && pathname == "/login") {
         navigate("/dashboard");
       }
       else {
         navigate("/create-org");
       }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, pathname]);
 
   return (
     <div className="min-h-screen flex flex-col">

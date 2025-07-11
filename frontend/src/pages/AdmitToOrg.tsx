@@ -17,7 +17,6 @@ import axios from "axios";
 const inviteSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   role: z.string().min(1, "Please select a role"),
-  organizationName: z.string().min(1, "Organization name is required"),
 });
 
 type InviteFormValues = z.infer<typeof inviteSchema>;
@@ -31,14 +30,13 @@ const AdmitUsersPage = () => {
     defaultValues: {
       email: "",
       role: "",
-      organizationName: "",
     },
   });
 
   
 
   const onSubmit = async (values: InviteFormValues) => {
-    console.log(values);
+    console.log('admit',values);
     try {
       const response = await axios.post("http://localhost:3000/api/org/admit", {
         email: values.email,
@@ -60,7 +58,6 @@ const AdmitUsersPage = () => {
       form.reset({
         email: "",
         role: "",
-        organizationName: values.organizationName, // Keep org name
       });
       
     } catch (error) {
@@ -71,9 +68,6 @@ const AdmitUsersPage = () => {
       });
     }
   };
-
-
-
 
 
   return (
@@ -96,8 +90,8 @@ const AdmitUsersPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form  className="space-y-6">
+              <Form {...form} >
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
