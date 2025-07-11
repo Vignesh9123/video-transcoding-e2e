@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
 import { Video } from "@/lib/mock-data";
 import {toast} from '@/components/ui/sonner'
 import axios from "axios";
@@ -29,7 +30,7 @@ interface VideoCardProps {
 
 const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  
+  const {user} = useAuth();
   const getStatusColor = (status: Video["status"]) => {
     switch (status) {
       case "PENDING": return "text-status-pending";
@@ -128,7 +129,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
 
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg truncate" title={video.name}>{video.name}</CardTitle>
+          <CardTitle className="text-lg truncate line-clamp-1 mr-1" title={video.name}>{video.name}</CardTitle>
           <span className={`text-sm font-medium ${getStatusColor(video.status)}`}>
             {video.status.charAt(0).toUpperCase() + video.status.slice(1)}
           </span>
@@ -139,13 +140,13 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
       </CardHeader>
 
       <CardContent className="flex-grow">
-        {/*<p className="text-sm text-muted-foreground line-clamp-2">
-          {video.description || "No description provided"}
-        </p>*/}
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          { (user.roleInOrg === "OWNER" || user.roleInOrg === "VIEWER") && video.User&& `Uploaded by ${user.email === video.User.email ? "You" : `${video.User.name} (${video.User.email})`}`} 
+        </p>
         
         {video.status === "COMPLETED" && (
           <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Available Formats</h4>
+            {/* <h4 className="text-sm font-medium mb-2">Available Formats</h4> */}
             <div className="grid grid-cols-2 gap-2">
               {/* {video.formats?.map((format) => (
                 <div key={format.id} className="border rounded p-2 text-xs">

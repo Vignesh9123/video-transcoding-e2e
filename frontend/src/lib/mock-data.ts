@@ -19,6 +19,10 @@ export interface Video {
   thumbnail?: string;
   duration?: string;
   createdAt: string;
+  User:{
+    name: string;
+    email: string;
+  }
   // formats?: VideoFormat[];
 }
 
@@ -37,6 +41,10 @@ export const mockVideos: Video[] = [
     //   { id: "1-3", format: "mp4", resolution: "480p", url: "#", size: "500 MB" },
     //   { id: "1-4", format: "m3u8", resolution: "Adaptive", url: "#", size: "Streaming" },
     // ],
+    User: {
+      name: "John Doe",
+      email: "o9E0U@example.com"
+    }
   },
   {
     id: "2",
@@ -47,6 +55,10 @@ export const mockVideos: Video[] = [
     thumbnail: "https://images.unsplash.com/photo-1588702547923-7093a6c3ba33?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     duration: "00:12:30",
     createdAt: new Date().toISOString(), // Just uploaded
+    User: {
+      name: "John Doe",
+      email: "o9E0U@example.com"
+    }
   },
   {
     id: "3",
@@ -55,6 +67,10 @@ export const mockVideos: Video[] = [
     status: "PENDING",
     thumbnail: "https://images.unsplash.com/photo-1522071901873-411886a10004?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3",
     createdAt: new Date(Date.now() - 30 * 60000).toISOString(), // 30 minutes ago
+    User: {
+      name: "John Doe",
+      email: "o9E0U@example.com"
+    }
   },
   {
     id: "4",
@@ -69,6 +85,10 @@ export const mockVideos: Video[] = [
     //   { id: "4-2", format: "mp4", resolution: "720p", url: "#", size: "450 MB" },
     //   { id: "4-3", format: "mp4", resolution: "480p", url: "#", size: "250 MB" },
     // ],
+    User: {
+      name: "John Doe",
+      email: "o9E0U@example.com"
+    }
   },
   {
     id: "5",
@@ -76,6 +96,10 @@ export const mockVideos: Video[] = [
     description: "Step-by-step guide on how to use our advanced analytics dashboard features.",
     status: "FAILED",
     createdAt: "2023-10-18T11:20:00.000Z",
+    User: {
+      name: "John Doe",
+      email: "o9E0U@example.com"
+    }
   },
   {
     id: "6",
@@ -90,5 +114,9 @@ export const mockVideos: Video[] = [
     //   { id: "6-2", format: "mp4", resolution: "720p", url: "#", size: "950 MB" },
     //   { id: "6-3", format: "m3u8", resolution: "Adaptive", url: "#", size: "Streaming" },
     // ],
+    User: {
+      name: "John Doe",
+      email: "o9E0U@example.com"
+    }
   },
 ];
