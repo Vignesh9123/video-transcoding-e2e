@@ -67,7 +67,15 @@ export const getUserVideos = async(req: Request, res: Response)=>{
                 },{
                     name: 'asc'
                 }
-                ]
+                ],
+                include:{
+                   User:{
+                       select: {
+                           name: true,
+                           email: true
+                       } 
+                   } 
+                }
             })
             res.status(200).json({
                 data: videos,
@@ -104,7 +112,15 @@ export const getUserVideos = async(req: Request, res: Response)=>{
                 },{
                     name: 'asc'
                 }
-                ]
+                ],
+                include:{
+                   User:{
+                       select: {
+                           name: true,
+                           email: true
+                       } 
+                   } 
+                }
             })
             res.status(200).json({
                 data: videos,
