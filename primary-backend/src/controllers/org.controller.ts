@@ -34,12 +34,35 @@ export const admitToOrg = async (req: Request, res: Response) => {
         if (!userToAdmit) throw new Error("User not found");
         await prisma.user.update({
             where: { id: userToAdmit.id },
-            data: { organization: org.id, roleInOrg: role || "VIEWER" },
+            data: { organization: org.id, roleInOrg: role == "editor"? "EDITOR" : "VIEWER" },
         });
         res.status(200).json({ message: "User admitted to organization" });
         return;
         
     } catch (error: any) {
+        console.log(error)
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return;
+    }
+}
+
+export const getOrganizationData = async (req: Request, res: Response) => {
+    try {
+        const  orgId = req.params.orgId;
+        if(!orgId) throw new Error("Missing required fields");
+        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{
+            _count:{
+                select: {
+                    users: true
+                }
+            }
+        } });
+        if (!org) throw new Error("Organization not found");
+        res.status(200).json({ ...org, userCount: org._count.users });
+        return
+
+    } catch (error: any) {
+        console.log(error)
         res.status(500).json({ error: error?.message || "Internal server error" });
         return;
     }
