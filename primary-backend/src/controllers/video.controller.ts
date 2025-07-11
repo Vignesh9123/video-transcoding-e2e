@@ -340,10 +340,11 @@ export const getVideoURL = async (req: Request, res: Response) => {
             })
             return
         }
+        const streamUrl = 'http://localhost:3000/api/video/stream'
         if (user.roleInOrg == "OWNER") {
             const token = generateToken({ videoId: video.id, userId: user.id })
             if(!token) throw new Error("Internal Server Error");
-            const url = video.url+"?token="+token
+            const url = streamUrl+"?token="+token
             res.status(200).json({
                 success: true,
                 data: url,
@@ -362,7 +363,7 @@ export const getVideoURL = async (req: Request, res: Response) => {
             }
             const token = generateToken({ videoId: video.id, userId: user.id })
             if(!token) throw new Error("Internal Server Error");
-            const url = video.url+"?token="+token
+            const url = streamUrl+"?token="+token
             res.status(200).json({
                 success: true,
                 data: url,
@@ -381,7 +382,7 @@ export const getVideoURL = async (req: Request, res: Response) => {
             }
             const token = generateToken({ videoId: video.id, userId: user.id })
             if(!token) throw new Error("Internal Server Error");
-            const url = video.url+"?token="+token
+            const url = streamUrl+"?token="+token
             res.status(200).json({
                 success: true,
                 data: url,
