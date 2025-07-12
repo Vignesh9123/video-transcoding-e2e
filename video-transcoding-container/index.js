@@ -127,26 +127,19 @@ async function createHLSStream(videoPath, outputPath) {
     const masterPlaylist = [];
     masterPlaylist.push('#EXTM3U');
     masterPlaylist.push('#EXT-X-VERSION:3');
-    let runningIndex = 0;
-    const totalDuration = await getVideoDuration(videoPath);
-    const expectedSegments = Math.ceil(totalDuration / 10);
-    // const updateInterval = Math.floor(expectedSegments / 10); 
+    const totalDuration = await getVideoDuration(videoPath); 
+    const variantProgress = new Array(variants.length).fill(0); 
 
-    let segmentCount = 0;
-    let lastReportedStep = 0;
     const variantPromises = variants.map((variant, index) => {
         return new Promise((resolve, reject) => {
             try {
                 const variantPath = `${hlsOutputPath}/${variant.name}`;
-
-                if (!fs.existsSync(variantPath)) {
-                    fs.mkdirSync(variantPath, { recursive: true });
-                }
+                if (!fs.existsSync(variantPath)) fs.mkdirSync(variantPath, { recursive: true });
 
                 masterPlaylist.push(`#EXT-X-STREAM-INF:BANDWIDTH=${parseInt(variant.bitrate) * 1000},RESOLUTION=${variant.resolution.width}x${variant.resolution.height}`);
                 masterPlaylist.push(`${variant.name}/playlist.m3u8`);
 
-
+                let lastReportedStep = 0;
 
                 ffmpeg(videoPath)
                     .output(`${variantPath}/playlist.m3u8`)
@@ -155,70 +148,56 @@ async function createHLSStream(videoPath, outputPath) {
                     .size(`${variant.resolution.width}x${variant.resolution.height}`)
                     .videoBitrate(variant.bitrate)
                     .addOptions([
-                        '-hls_time 10',
-                        '-hls_list_size 0',
-                        '-hls_segment_type mpegts',
+                        '-hls_time', '10',
+                        '-hls_list_size', '0',
+                        '-hls_segment_type', 'mpegts',
                         '-hls_segment_filename', `${variantPath}/segment%d.ts`,
-                        '-f hls',
-                        '-profile:v main',
-                        '-crf 23',
-                        '-preset fast',
-                        '-sc_threshold 0',
-                        '-g 48',
-                        '-keyint_min 48',
-                        '-hls_flags delete_segments+append_list',
+                        '-f', 'hls',
+                        '-profile:v', 'main',
+                        '-crf', '23',
+                        '-preset', 'fast',
+                        '-sc_threshold', '0',
+                        '-g', '48',
+                        '-keyint_min', '48',
+                        '-hls_flags', 'delete_segments+append_list',
                     ])
-                    .on('end', async () => {
-                        console.log(`HLS variant ${variant.name} completed with index ${index}`);
-                        //  try {
-                        //      console.log(`Updating progress for ${variant.name} to ${(runningIndex+1)/variants.length * 100}`)
-                        //      await prisma.video.update({
-                        //          where:{
-                        //              id:process.env.KEY
-                        //          },
-                        //          data:{
-                        //          progress:(runningIndex+1)/variants.length * 100
-                        //      }
-                        //  })
-                        //  }
-                        //  catch(error){
-                        //      console.error(`Error updating progress for ${variant.name}: ${error.message}`);
-                        //  }
-                        //  runningIndex++;
-                        resolve()
-                    })
-                    .on('stderr', (line) => {
-                        if (line.includes('Opening') && line.includes('.ts')) {
-                            segmentCount++;
-                            const currentStep = Math.floor((segmentCount / expectedSegments) * 10);
-                            if (currentStep > lastReportedStep) {
-                                lastReportedStep = currentStep;
-                                const progressPercent = ((runningIndex + (segmentCount / expectedSegments)) / variants.length) * 100;
-                                prisma.video.update({
-                                    where: { id: process.env.KEY },
-                                    data: { progress: progressPercent }
-                                }).catch(e => console.error('Failed progress update', e));
-                            }
+                    .on('progress', (progress) => {
+                        const timeParts = progress.timemark.split(':').map(parseFloat);
+                        const seconds = timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
+                        const percent = Math.min(100, (seconds / totalDuration) * 100);
+                        const currentStep = Math.floor(percent / 10);
+
+                        if (currentStep > lastReportedStep) {
+                            lastReportedStep = currentStep;
+                            variantProgress[index] = percent;
+
+                            const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / variants.length;
+
+                            prisma.video.update({
+                                where: { id: process.env.KEY },
+                                data: { progress: overallProgress }
+                            }).catch(e => console.error(`Failed to update progress:`, e));
                         }
                     })
-                    .on('error', async (err) => {
+                    .on('end', () => {
+                        console.log(`HLS variant ${variant.name} finished`);
+                        variantProgress[index] = 100;
+
+                        const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / variants.length;
+
+                        prisma.video.update({
+                            where: { id: process.env.KEY },
+                            data: { progress: overallProgress }
+                        }).catch(e => console.error(`Final update failed`, e));
+
+                        resolve();
+                    })
+                    .on('error', (err) => {
                         console.error(`Error transcoding ${variant.name}: ${err.message}`);
-                        if (err.message.includes("SIGABRT")) {
-                            if (++runningIndex == variants.length) {
-                                try {
-                                    await prisma.video.update({
-                                        where: {
-                                            id: process.env.KEY
-                                        },
-                                        data: {
-                                            status: 'FAILED'
-                                        }
-                                    })
-                                } catch (error) {
-                                    console.error(`Error updating status for ${variant.name}: ${error.message}`);
-                                }
-                            }
-                        }
+                        prisma.video.update({
+                            where: { id: process.env.KEY },
+                            data: { status: 'FAILED' }
+                        }).catch(e => console.error(`Failed to update failed status`, e));
                         reject(err);
                     })
                     .run();
@@ -228,6 +207,7 @@ async function createHLSStream(videoPath, outputPath) {
             }
         });
     });
+
 
     try {
         await Promise.all(variantPromises);

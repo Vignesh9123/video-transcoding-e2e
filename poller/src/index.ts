@@ -37,7 +37,7 @@ async function init() {
         const command = new ReceiveMessageCommand({
             QueueUrl: process.env.SQS_URL,
             MaxNumberOfMessages: 1,
-            VisibilityTimeout: 400, // 400 seconds (includes transcoding time and cleanup time too)
+            VisibilityTimeout: 400, 
             WaitTimeSeconds: 10,
         });
         console.log('Waiting for messages');
