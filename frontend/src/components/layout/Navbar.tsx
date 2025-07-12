@@ -42,9 +42,9 @@ const Navbar = () => {
           
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              <Button className="hidden md:block" variant="outline" asChild>
+              {user.roleInOrg != "VIEWER" && <Button className="hidden md:block" variant="outline" asChild>
                 <Link to="/upload">Upload Video</Link>
-              </Button>
+              </Button>}
               {
                 user?.roleInOrg === "OWNER" && (
                   <Button className="hidden md:block" variant="outline" asChild>

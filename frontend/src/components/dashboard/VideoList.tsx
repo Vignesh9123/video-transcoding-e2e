@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoCard from "./VideoCard";
 import { Video, VideoStatus } from "@/lib/mock-data";
 import axios from 'axios';
+import { useAuth } from "@/context/AuthContext";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -16,7 +17,7 @@ const VideoList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
-
+  const {user} = useAuth();
   const getVideoStatuses = useCallback(async () => {
     const videoIds = videos
       .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING" || vid.status === "UPLOADING")
@@ -119,9 +120,9 @@ const VideoList = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold">Your Videos</h2>
-        <Button asChild>
+        {user.roleInOrg != "VIEWER" && <Button asChild>
           <Link to="/upload">Upload New Video</Link>
-        </Button>
+        </Button>}
       </div>
 
       <Tabs defaultValue="all" value={activeFilter} onValueChange={(v) => setActiveFilter(v as StatusFilter)}>

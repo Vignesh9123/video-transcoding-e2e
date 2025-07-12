@@ -180,14 +180,14 @@ const HeroHeader = () => {
                             </div>
                             <ThemeToggle />
                             {isAuthenticated ? ( 
+                                    <Link to="/dashboard">
                                 <div>
                                 <Button
                                     size="sm">
-                                    <Link to="/dashboard">
                                         <span>Dashboard</span>
-                                    </Link>
                                 </Button>
                                </div>
+                                    </Link>
                             ):(
                             <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
                                 <Button
