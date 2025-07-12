@@ -9,7 +9,7 @@ dotenv.config()
 
 app.use(cors(
     {
-        origin: ['http://localhost:8080', 'https://hlsjs.video-dev.org'],
+        origin: ['http://localhost:8080', 'https://hlsjs.video-dev.org', 'https://livepush.io', 'http://localhost:*'],
         credentials: true,
     }
 ))

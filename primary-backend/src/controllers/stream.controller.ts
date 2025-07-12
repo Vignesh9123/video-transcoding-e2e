@@ -17,17 +17,19 @@ export const stream = async(req: Request, res: Response)=>{
         const user = await prisma.user.findUnique({where:{id:userId}, include:{Organization:true}})
         if(user?.roleInOrg == "OWNER"){
             if(user.organization !== video.organization) throw new Error("Unauthorized");
-            res.redirect(video.url)
+           
+            res.status(200).redirect(video.url)
+              return
         }
         else if(user?.roleInOrg == "EDITOR"){
             if(user.organization !== video.organization) throw new Error("Unauthorized");
             if(user.id !== video.userId) throw new Error("Unauthorized");
-            res.redirect(video.url)
+            res.status(200).redirect(video.url)
         }
         else if(user?.roleInOrg == "VIEWER"){
             if(user.organization !== video.organization) throw new Error("Unauthorized");
             if(!video.isPublic) throw new Error("Unauthorized");
-            res.redirect(video.url)
+            res.status(200).redirect(video.url)
         }
         else{
             throw new Error("Unauthorized");
