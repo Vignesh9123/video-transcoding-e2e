@@ -5,7 +5,7 @@ import { config, prisma } from "../config";
 import { generateToken } from "../utils";
 export const getPresignedUrl = async (req: Request, res: Response) => {
     try {
-        const { name } = req.body
+        const { name, isPublic } = req.body
         const { id } = req.user
         const user = await prisma.user.findFirst({
             where: {
@@ -17,7 +17,8 @@ export const getPresignedUrl = async (req: Request, res: Response) => {
             data: {
                 name,
                 userId: id,
-                organization: user?.organization
+                organization: user?.organization,
+                isPublic: user.roleInOrg == "OWNER" ? isPublic: false
             }
         })
         const s3Client = new S3Client({
@@ -399,4 +400,44 @@ export const getVideoURL = async (req: Request, res: Response) => {
         })
     }
 
+}
+
+export const toggleVideoVisibility = async(req: Request, res: Response)=>{
+    try {
+        const videoId = req.params.videoId;
+        const userId = req.user.id
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        if(!user) throw new Error("No user with that ID")
+        if(user.roleInOrg != "OWNER") throw new Error("Unauthorized");
+        const video = await prisma.video.findFirst({
+            where:{
+                id: videoId
+            }
+        })
+        if(!video) throw new Error("No video with that ID")
+        if(user.organization != video.organization) throw new Error("Unauthorized");
+        await prisma.video.update({
+            where: {
+                id: videoId
+            },
+            data: {
+                isPublic: !video.isPublic
+            }
+        })
+        res.status(200).json({
+            success: true,
+            message: "Video visibility toggled successfully"
+        })
+        return
+    } catch (error: any) {
+        console.log("Error", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
+    }
 }
