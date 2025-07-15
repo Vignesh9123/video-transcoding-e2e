@@ -9,7 +9,9 @@ interface ResolutionSelectionProps {
 
 const ResolutionSelection = ({ selectedResolutions, setSelectedResolutions }: ResolutionSelectionProps) => {
   const resolutions = [
-    { id: "360p", name: "360p (SD)", description: "Low quality, best for mobile data saving" },
+    { id: "144p", name: "144p (SD)", description: "Very Low quality" },
+    { id: "240p", name: "240p (SD)", description: "Low definition quality" },
+    { id: "360p", name: "360p (SD)", description: "Medium definition quality" },
     { id: "480p", name: "480p (SD)", description: "Standard definition quality" },
     { id: "720p", name: "720p (HD)", description: "High definition quality" },
     { id: "1080p", name: "1080p (Full HD)", description: "Full high definition quality" }
@@ -26,7 +28,7 @@ const ResolutionSelection = ({ selectedResolutions, setSelectedResolutions }: Re
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground mb-4">
-        Select the resolutions you want for your transcoded videos.
+        Select the resolutions you want for your transcoded video.
       </p>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -19,6 +19,8 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Progress } from "../ui/progress";
 import ProgressDialogBox from "./ProgressDialogBox";
 import axios from "axios";
+import { Switch } from "../ui/switch";
+import { useAuth } from "@/context/AuthContext";
 
 interface UploadFormProps {
   onFileChange: (file: File | null) => void;
@@ -27,10 +29,12 @@ interface UploadFormProps {
 
 const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [title, setTitle] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [description, setDescription] = useState("");
   const [selectedFormats, setSelectedFormats] = useState<string[]>(["mp4"]);
-  const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["720p"]);
+  const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["360p", "480p","720p"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -65,14 +69,14 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     //   return false;
     // }
 
-    // if (selectedResolutions.length === 0) {
-    //   toast({
-    //     title: "No resolution selected",
-    //     description: "Please select at least one resolution",
-    //     variant: "destructive",
-    //   });
-    //   return false;
-    // }
+    if (selectedResolutions.length === 0) {
+      toast({
+        title: "No resolution selected",
+        description: "Please select at least one resolution",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     return true;
   };
@@ -134,7 +138,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         if (!uploadedFile) return
         setOpen(true)
         setIsSubmitting(true)
-        const res = await axios.post('http://localhost:3000/api/video/get-presigned-url', {name: title || uploadedFile.name}, {withCredentials: true})
+        const res = await axios.post('http://localhost:3000/api/video/get-presigned-url', {name: title || uploadedFile.name, isPublic, selectedResolutions}, {withCredentials: true})
         const {signedUrl, key} = res.data
         console.log('signedUrl', signedUrl)
         // const url = new URL(signedUrl)
@@ -304,8 +308,16 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
+            { user?.roleInOrg === "OWNER" && <div className="flex items-center gap-3">
+                <Label htmlFor="isPublic">Make it public</Label>
+                <Switch
+                  id="isPublic"
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                />
+              </div>}
               
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="description">Description (Optional)</Label>
                 <Textarea
                   id="description"
@@ -314,23 +326,13 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
-              </div>
+              </div> */}
             </div>
           </CardContent>
         </Card>
-        {/* <Card>
+        <Card>
           <CardContent className="pt-6">
             <Accordion type="single" collapsible defaultValue="formats">
-              <AccordionItem value="formats">
-                <AccordionTrigger>Output Formats</AccordionTrigger>
-                <AccordionContent>
-                  <FormatSelection 
-                    selectedFormats={selectedFormats} 
-                    setSelectedFormats={setSelectedFormats} 
-                  />
-                </AccordionContent>
-              </AccordionItem>
-              
               <AccordionItem value="resolutions">
                 <AccordionTrigger>Resolutions</AccordionTrigger>
                 <AccordionContent>
@@ -342,7 +344,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
               </AccordionItem>
             </Accordion>
           </CardContent>
-        </Card> */}
+        </Card>
       </div>
 
       <div className="flex justify-end space-x-4">
