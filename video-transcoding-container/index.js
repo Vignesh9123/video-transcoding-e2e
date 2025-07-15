@@ -97,40 +97,59 @@ const getVideoDuration = (path) => {
     });
 };
 
-async function createHLSStream(videoPath, outputPath) {
+async function createHLSStream(videoPath, outputPath, variantsRes) {
     const variants = [
-        // {
-        //     resolution: { width: 1920, height: 1080 },
-        //     bitrate: '5000k',
-        //     name: '1080p'
-        // },
         {
-            resolution: { width: 640, height: 360 },
-            bitrate: '500k',
-            name: '360p'
-        },
-        {
-            resolution: { width: 854, height: 480 },
-            bitrate: '1500k',
-            name: '480p'
+            resolution: { width: 1920, height: 1080 },
+            bitrate: '5000k',
+            name: '1080p',
+            id: 5
         },
         {
             resolution: { width: 1280, height: 720 },
             bitrate: '3000k',
-            name: '720p'
+            name: '720p',
+            id: 4
         },
-
-
+        {
+            resolution: { width: 854, height: 480 },
+            bitrate: '1500k',
+            name: '480p',
+            id: 3
+        },
+        {
+            resolution: { width: 640, height: 360 },
+            bitrate: '500k',
+            name: '360p',
+            id: 2
+        },
+        {
+            resolution: { width: 426, height: 240 },
+            bitrate: '300k',
+            name: '240p',
+            id: 1
+        },
+        {
+            resolution: { width: 256, height: 144 },
+            bitrate: '150k',
+            name: '144p',
+            id: 0
+        }
     ];
+    const resolvedVariants = variants.filter(variant => variantsRes.includes(variant.name));
+
+    resolvedVariants.sort((a, b) => {
+        return a.id - b.id;
+    });
 
     const hlsOutputPath = outputPath.replace('.mp4', '');
     const masterPlaylist = [];
     masterPlaylist.push('#EXTM3U');
     masterPlaylist.push('#EXT-X-VERSION:3');
     const totalDuration = await getVideoDuration(videoPath); 
-    const variantProgress = new Array(variants.length).fill(0); 
+    const variantProgress = new Array(resolvedVariants.length).fill(0); 
 
-    const variantPromises = variants.map((variant, index) => {
+    const variantPromises = resolvedVariants.map((variant, index) => {
         return new Promise((resolve, reject) => {
             try {
                 const variantPath = `${hlsOutputPath}/${variant.name}`;
@@ -171,7 +190,7 @@ async function createHLSStream(videoPath, outputPath) {
                             lastReportedStep = currentStep;
                             variantProgress[index] = percent;
 
-                            const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / variants.length;
+                            const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / resolvedVariants.length;
 
                             prisma.video.update({
                                 where: { id: process.env.KEY },
@@ -183,7 +202,7 @@ async function createHLSStream(videoPath, outputPath) {
                         console.log(`HLS variant ${variant.name} finished`);
                         variantProgress[index] = 100;
 
-                        const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / variants.length;
+                        const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / resolvedVariants.length;
 
                         prisma.video.update({
                             where: { id: process.env.KEY },
@@ -303,7 +322,7 @@ async function HLSStreaming() {
         console.log(`File written to ${path.join(__dirname, 'videos', process.env.KEY)}`)
         const videoPath = path.join(__dirname, 'videos', process.env.KEY)
         const outputPath = path.join(__dirname, 'transcoded', `${process.env.KEY.split('.')[0]}.mp4`)
-        const hlsPath = await createHLSStream(videoPath, outputPath)
+        const hlsPath = await createHLSStream(videoPath, outputPath, DBVideo.variants)
         const baseKey = `${path.basename(hlsPath)}`;
 
         await uploadDirectoryToS3(hlsPath, baseKey);
