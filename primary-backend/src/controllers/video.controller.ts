@@ -5,7 +5,7 @@ import { config, prisma } from "../config";
 import { generateToken } from "../utils";
 export const getPresignedUrl = async (req: Request, res: Response) => {
     try {
-        const { name, isPublic } = req.body
+        const { name, isPublic, selectedResolutions } = req.body
         const { id } = req.user
         const user = await prisma.user.findFirst({
             where: {
@@ -18,7 +18,8 @@ export const getPresignedUrl = async (req: Request, res: Response) => {
                 name,
                 userId: id,
                 organization: user?.organization,
-                isPublic: user.roleInOrg == "OWNER" ? isPublic: false
+                isPublic: user.roleInOrg == "OWNER" ? isPublic: false,
+                variants: selectedResolutions.length > 0 ? selectedResolutions : ['360p', '480p', '720p']
             }
         })
         const s3Client = new S3Client({
