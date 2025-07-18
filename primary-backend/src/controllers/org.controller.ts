@@ -88,3 +88,67 @@ export const getOrganizationMembers = async(req: Request, res: Response)=>{
         return;
     }
 }
+
+export const removeFromOrg = async(req: Request, res: Response)=>{
+    try {
+        const {userId, orgId} = req.body;
+        const currentUserId = req.user.id;
+        if(!currentUserId) throw new Error("Unauthorized");
+        const attemptingUser = await prisma.user.findFirst({
+            where: {
+              AND: [
+                { id: currentUserId },
+                { organization: orgId },
+              ],
+            },
+          });
+        if (!attemptingUser) throw new Error("User not found");
+        if(attemptingUser.roleInOrg !== "OWNER") throw new Error("Unauthorized");
+        if(!userId) throw new Error("Missing required fields");
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error("User not found");
+        if(!orgId) throw new Error("Missing required fields");
+        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{users:true} });
+        if (!org) throw new Error("Organization not found");
+        if(user.organization !== orgId) throw new Error("Unauthorized");
+        await prisma.user.update({ where: { id: userId }, data: { organization: null } });
+        res.status(200).json({ message: "User removed from organization" });
+        return
+    } catch (error: any) {
+        console.log(error)
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return;
+    }
+}
+
+export const updateRole = async(req: Request, res: Response)=>{
+    try {
+        const {userId, orgId, role} = req.body;
+        const currentUserId = req.user.id;
+        if(!currentUserId) throw new Error("Unauthorized");
+        const attemptingUser = await prisma.user.findFirst({
+            where: {
+              AND: [
+                { id: currentUserId },
+                { organization: orgId },
+              ],
+            },
+          });
+        if (!attemptingUser) throw new Error("User not found");
+        if(attemptingUser.roleInOrg !== "OWNER") throw new Error("Unauthorized");
+        if(!userId) throw new Error("Missing required fields");
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error("User not found");
+        if(!orgId) throw new Error("Missing required fields");
+        const org = await prisma.organization.findUnique({ where: { id: orgId } });
+        if (!org) throw new Error("Organization not found");
+        if(user.organization !== orgId) throw new Error("Unauthorized");
+        await prisma.user.update({ where: { id: userId }, data: { roleInOrg: role } });
+        res.status(200).json({ message: "User role updated" });
+        return
+    } catch (error: any) {
+        console.log(error)
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return;
+    }
+}
