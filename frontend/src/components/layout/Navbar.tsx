@@ -52,6 +52,13 @@ const Navbar = () => {
                   </Button>
                 )
               }
+              {
+                user?.roleInOrg === "OWNER" && (
+                  <Button className="hidden md:block" variant="outline" asChild>
+                    <Link to="/manage-members">Manage Organization</Link>
+                  </Button>
+                )
+              }
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">

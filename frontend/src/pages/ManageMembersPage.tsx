@@ -7,6 +7,7 @@ import { Trash2, Users, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -30,7 +31,8 @@ interface Member {
 
 const ManageMembersPage = () => {
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
+    const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState("");
 
     const [members, setMembers] = useState<Member[]>([]);
@@ -80,6 +82,12 @@ const ManageMembersPage = () => {
         fetchMembers();
 
     }, [])
+
+    useEffect(() => {
+        if(isLoading) return
+        if(!user) navigate("/login");
+        if(user && user.roleInOrg !== "OWNER") navigate("/dashboard");
+    }, [isLoading, user]);
 
 
     useEffect(() => {

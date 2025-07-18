@@ -19,9 +19,10 @@ const CreateOrgPage = () => {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
+      console.log("Not authenticated, redirecting to login");
       navigate("/login");
     }
-  }, [user, navigate]);
+  }, [authLoading, isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

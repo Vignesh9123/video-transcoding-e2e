@@ -80,9 +80,9 @@ const AppRoutes = () => (
         <Route 
           path="/create-org" 
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <CreateOrgPage />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           } 
         />
         <Route 
