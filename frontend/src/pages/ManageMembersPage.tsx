@@ -19,12 +19,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import axios from "axios";
+import Navbar from "@/components/layout/Navbar";
 
 interface Member {
   id: string;
   email: string;
   name: string;
-  role: "OWNER" | "EDITOR" | "VIEWER";
+  roleInOrg: "OWNER" | "EDITOR" | "VIEWER";
 }
 
 const ManageMembersPage = () => {
@@ -33,11 +34,12 @@ const ManageMembersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   
   const [members, setMembers] = useState<Member[]>([]);
+  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
 
-  const handleRoleChange = (memberId: string, newRole: Member["role"]) => {
+  const handleRoleChange = (memberId: string, newRole: Member["roleInOrg"]) => {
     setMembers(prev => 
       prev.map(member => 
-        member.id === memberId ? { ...member, role: newRole } : member
+        member.id === memberId ? { ...member, roleInOrg: newRole } : member
       )
     );
     toast({
@@ -55,7 +57,8 @@ const ManageMembersPage = () => {
             },
             withCredentials: true
         });
-        setMembers(response.data.data);
+        console.log('response', response.data);
+        setMembers(response.data.users);
     } catch (error) {
         console.error('Error fetching members:', error);
     }
@@ -67,10 +70,14 @@ const ManageMembersPage = () => {
   }, [])
 
 
-  const filteredMembers = members.filter(member =>
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    if(members && members.length === 0) return
+    const filtered = members.filter(member =>
+      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredMembers(filtered);
+  }, [members, searchQuery]);
 
   const handleDeleteMember = (memberId: string) => {
     setMembers(prev => prev.filter(member => member.id !== memberId));
@@ -88,6 +95,7 @@ const ManageMembersPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+        <Navbar/>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -137,15 +145,15 @@ const ManageMembersPage = () => {
                     </TableCell>
                     <TableCell>
                       <Select
-                        value={member.role}
-                        onValueChange={(value: Member["role"]) => 
+                        value={member.roleInOrg}
+                        onValueChange={(value: Member["roleInOrg"]) => 
                           handleRoleChange(member.id, value)
                         }
                       >
                         <SelectTrigger className="w-32">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent >
                           <SelectItem value="OWNER">Owner</SelectItem>
                           <SelectItem value="EDITOR">Editor</SelectItem>
                           <SelectItem value="VIEWER">Viewer</SelectItem>
