@@ -67,3 +67,24 @@ export const getOrganizationData = async (req: Request, res: Response) => {
         return;
     }
 }
+
+
+export const getOrganizationMembers = async(req: Request, res: Response)=>{
+    try {
+        const orgId = req.params.orgId;
+        const userId = req.user.id;
+        if(!userId) throw new Error("Unauthorized");
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error("User not found");
+        if(user.roleInOrg !== "OWNER") throw new Error("Unauthorized");
+        if(!orgId) throw new Error("Missing required fields");
+        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{users:true} });
+        if (!org) throw new Error("Organization not found");
+        res.status(200).json({ users: org.users });
+        return
+    } catch (error: any) {
+        console.log(error)
+        res.status(500).json({ error: error?.message || "Internal server error" });
+        return;
+    }
+}

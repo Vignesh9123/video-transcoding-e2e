@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, Users, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +29,7 @@ interface Member {
 
 const ManageMembersPage = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   
   const [members, setMembers] = useState<Member[]>([]);
@@ -46,7 +48,13 @@ const ManageMembersPage = () => {
 
   const fetchMembers = async()=>{
     try {
-        const response = await axios.get('http://localhost:3000/api/org/members');
+        const response = await axios.get(`http://localhost:3000/api/org/members/${user.organization}`, {
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            withCredentials: true
+        });
         setMembers(response.data.data);
     } catch (error) {
         console.error('Error fetching members:', error);
