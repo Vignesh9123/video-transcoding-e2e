@@ -8,196 +8,222 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import axios from "axios";
 import Navbar from "@/components/layout/Navbar";
 
 interface Member {
-  id: string;
-  email: string;
-  name: string;
-  roleInOrg: "OWNER" | "EDITOR" | "VIEWER";
+    id: string;
+    email: string;
+    name: string;
+    roleInOrg: "OWNER" | "EDITOR" | "VIEWER";
 }
 
 const ManageMembersPage = () => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  const [members, setMembers] = useState<Member[]>([]);
-  const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
+    const { toast } = useToast();
+    const { user } = useAuth();
+    const [searchQuery, setSearchQuery] = useState("");
 
-  const handleRoleChange = (memberId: string, newRole: Member["roleInOrg"]) => {
-    setMembers(prev => 
-      prev.map(member => 
-        member.id === memberId ? { ...member, roleInOrg: newRole } : member
-      )
-    );
-    toast({
-      title: "Role Updated",
-      description: "Member role has been successfully updated.",
-    });
-  };
+    const [members, setMembers] = useState<Member[]>([]);
+    const [filteredMembers, setFilteredMembers] = useState<Member[]>([]);
 
-  const fetchMembers = async()=>{
-    try {
-        const response = await axios.get(`http://localhost:3000/api/org/members/${user.organization}`, {
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${localStorage.getItem("token")}`
-            },
-            withCredentials: true
-        });
-        console.log('response', response.data);
-        setMembers(response.data.users);
-    } catch (error) {
-        console.error('Error fetching members:', error);
+    const handleRoleChange = async(memberId: string, newRole: Member["roleInOrg"]) => {
+       try {
+         await axios.post('http://localhost:3000/api/org/update-role',
+             { userId: memberId, orgId: user.organization, role: newRole },
+             { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` }, withCredentials: true });
+         setMembers(prev =>
+             prev.map(member =>
+                 member.id === memberId ? { ...member, roleInOrg: newRole } : member
+             )
+         );
+         toast({
+             title: "Role Updated",
+             description: "Member role has been successfully updated.",
+         });
+       } catch (error) {
+         console.error('Error updating role:', error);
+         toast({
+             title: "Error",
+             description: "An error occurred while updating the role.",
+             variant: "destructive",
+         });
+       }
+    };
+
+    const fetchMembers = async () => {
+        try {
+            const response = await axios.get(`http://localhost:3000/api/org/members/${user.organization}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("token")}`
+                },
+                withCredentials: true
+            });
+            console.log('response', response.data);
+            setMembers(response.data.users);
+        } catch (error) {
+            console.error('Error fetching members:', error);
+        }
     }
-  }
 
-  useEffect(()=>{
-    fetchMembers();
+    useEffect(() => {
+        fetchMembers();
 
-  }, [])
-
-
-  useEffect(() => {
-    if(members && members.length === 0) return
-    const filtered = members.filter(member =>
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredMembers(filtered);
-  }, [members, searchQuery]);
-
-  const handleDeleteMember = (memberId: string) => {
-    setMembers(prev => prev.filter(member => member.id !== memberId));
-    toast({
-      title: "Member Removed",
-      description: "Member has been successfully removed from the organization.",
-      variant: "destructive",
-    });
-  };
-
-  
-  
+    }, [])
 
 
+    useEffect(() => {
+        if (members && members.length === 0) return
+        const filtered = members.filter(member =>
+            member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            member.email.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredMembers(filtered);
+    }, [members, searchQuery]);
 
-  return (
-    <div className="min-h-screen bg-background">
-        <Navbar/>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Manage Members</h1>
-          </div>
-          <p className="text-muted-foreground">
-            View and manage organization members, their roles, and permissions.
-          </p>
-        </div>
+    const handleDeleteMember = async (memberId: string) => {
+        try {
+            await axios.post('http://localhost:3000/api/org/remove',
+                { userId: memberId, orgId: user.organization },
+                { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` }, withCredentials: true });
+            setMembers(prev => prev.filter(member => member.id !== memberId));
+            toast({
+                title: "Member Removed",
+                description: "Member has been successfully removed from the organization.",
+                variant: "destructive",
+            });
+        } catch (error) {
+            console.error('Error deleting member:', error);
+            toast({
+                title: "Error",
+                description: "An error occurred while removing the member.",
+                variant: "destructive",
+            })
+        }
+    };
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Organization Members</CardTitle>
-            <CardDescription>
-              {members.length} member{members.length !== 1 ? 's' : ''} in your organization
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-          <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search members by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+
+
+
+
+
+
+
+    return (
+        <div className="min-h-screen bg-background">
+            <Navbar />
+            <div className="container mx-auto px-4 py-8">
+                <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Users className="h-8 w-8 text-primary" />
+                        <h1 className="text-3xl font-bold">Manage Members</h1>
+                    </div>
+                    <p className="text-muted-foreground">
+                        View and manage organization members, their roles, and permissions.
+                    </p>
+                </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Organization Members</CardTitle>
+                        <CardDescription>
+                            {members.length} member{members.length !== 1 ? 's' : ''} in your organization
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="mb-4">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                                <Input
+                                    placeholder="Search members by name or email..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Member</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredMembers.map((member) => (
+                                    <TableRow key={member.id}>
+                                        <TableCell>
+                                            <div>
+                                                <div className="font-medium">{member.name}</div>
+                                                <div className="text-sm text-muted-foreground">{member.email}</div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Select
+                                                value={member.roleInOrg}
+                                                onValueChange={(value: Member["roleInOrg"]) =>
+                                                    handleRoleChange(member.id, value)
+                                                }
+                                            >
+                                                <SelectTrigger className="w-32">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent >
+                                                    <SelectItem value="OWNER">Owner</SelectItem>
+                                                    <SelectItem value="EDITOR">Editor</SelectItem>
+                                                    <SelectItem value="VIEWER">Viewer</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex gap-2 justify-end">
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="outline" size="sm">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Remove Member</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Are you sure you want to remove {member.name} from the organization?
+                                                                This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                onClick={() => handleDeleteMember(member.id)}
+                                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                            >
+                                                                Remove
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredMembers.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{member.name}</div>
-                        <div className="text-sm text-muted-foreground">{member.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={member.roleInOrg}
-                        onValueChange={(value: Member["roleInOrg"]) => 
-                          handleRoleChange(member.id, value)
-                        }
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent >
-                          <SelectItem value="OWNER">Owner</SelectItem>
-                          <SelectItem value="EDITOR">Editor</SelectItem>
-                          <SelectItem value="VIEWER">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex gap-2 justify-end">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Remove Member</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to remove {member.name} from the organization? 
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteMember(member.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Remove
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+        </div>
+    );
 };
 
 export default ManageMembersPage;
