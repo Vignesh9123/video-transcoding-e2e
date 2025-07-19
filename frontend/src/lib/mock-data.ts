@@ -22,7 +22,8 @@ export interface Video {
   User:{
     name: string;
     email: string;
-  }
+  },
+  variants?: string[];
   // formats?: VideoFormat[];
 }
 

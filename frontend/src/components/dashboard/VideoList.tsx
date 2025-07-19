@@ -8,6 +8,7 @@ import VideoCard from "./VideoCard";
 import { Video, VideoStatus } from "@/lib/mock-data";
 import axios from 'axios';
 import { useAuth } from "@/context/AuthContext";
+import { Input } from "../ui/input";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -17,6 +18,7 @@ const VideoList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const {user} = useAuth();
   const getVideoStatuses = useCallback(async () => {
     const videoIds = videos
@@ -85,6 +87,11 @@ const VideoList = () => {
   }, []); 
 
   useEffect(() => {
+    if(searchQuery === '') setFilteredVideos(videos);
+    else setFilteredVideos(videos.filter((video) => video.name.toLowerCase().includes(searchQuery.toLowerCase())));
+  }, [searchQuery]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       getVideoStatuses();
     }, 5000);
@@ -123,6 +130,10 @@ const VideoList = () => {
         {user.roleInOrg != "VIEWER" && <Button asChild>
           <Link to="/upload">Upload New Video</Link>
         </Button>}
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Input placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
       </div>
 
       <Tabs defaultValue="all" value={activeFilter} onValueChange={(v) => setActiveFilter(v as StatusFilter)}>

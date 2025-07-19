@@ -146,14 +146,14 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
         
         {video.status === "COMPLETED" && (
           <div className="mt-4">
-            {/* <h4 className="text-sm font-medium mb-2">Available Formats</h4> */}
+            <h4 className="text-sm font-medium mb-2">Available Formats</h4>
             <div className="grid grid-cols-2 gap-2">
-              {/* {video.formats?.map((format) => (
-                <div key={format.id} className="border rounded p-2 text-xs">
-                  <div className="font-medium">{format.resolution}</div>
-                  <div className="text-muted-foreground">{format.format}</div>
+              {video.variants?.map((format) => (
+                <div key={format} className="border rounded p-2 text-xs">
+                  <div className="font-medium">{format}</div>
+                  {/* <div className="text-muted-foreground">{format.format}</div> */}
                 </div>
-              ))} */}
+              ))}
             </div>
           </div>
         )}
@@ -161,7 +161,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
 
       <CardFooter className="pt-2">
         <div className="flex justify-between w-full">
-          {video.status === "COMPLETED" ? (
+          {/* {video.status === "COMPLETED" ? (
             <Button variant="outline" size="sm" onClick={handleResendEmail}>
               Resend Email
             </Button>
@@ -171,7 +171,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
             </Button>
           ) : (
             <div />
-          )}
+          )} */}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -185,8 +185,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
               
               {video.status === "COMPLETED" && (
                 <>
-                  <DropdownMenuItem>Download All</DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleShare}>Share Video</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShare}>Copy Link</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
