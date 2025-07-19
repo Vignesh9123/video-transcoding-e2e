@@ -22,6 +22,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Video } from "@/lib/mock-data";
 import {toast} from '@/components/ui/sonner'
 import axios from "axios";
+import { Switch } from "../ui/switch";
 
 interface VideoCardProps {
   video: Video;
@@ -31,6 +32,7 @@ interface VideoCardProps {
 const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const {user} = useAuth();
+  const [isPublic, setIsPublic] = useState(video.isPublic);
   const getStatusColor = (status: Video["status"]) => {
     switch (status) {
       case "PENDING": return "text-status-pending";
@@ -88,9 +90,30 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
     }
   };
 
-  const handleResendEmail = () => {
-    toast("Email notification has been sent.");
-  };
+  const handleToggleVisibility = async() => {
+    try {
+      const togglePromise = axios.get("http://localhost:3000/api/video/toggle-visibility/"+video.id, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        withCredentials: true
+      }).then(()=>{
+        setIsPublic(value=>!value);
+      })
+      toast.promise(togglePromise, {
+        loading: "Toggling video visibility",
+        success: "Video visibility toggled successfully",
+        error: "Failed to toggle video visibility",
+      });
+    } catch (error) {
+      toast.error("Failed to toggle video visibility",{
+        description: "Please try again.",
+      });
+    }
+  }
+
+
 
   return (
     <Card className="overflow-hidden h-full flex flex-col">
@@ -161,18 +184,12 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
 
       <CardFooter className="pt-2">
         <div className="flex justify-between w-full">
-          {/* {video.status === "COMPLETED" ? (
-            <Button variant="outline" size="sm" onClick={handleResendEmail}>
-              Resend Email
-            </Button>
-          ) : video.status === "FAILED" ? (
-            <Button variant="outline" size="sm">
-              Retry
-            </Button>
-          ) : (
-            <div />
-          )} */}
-
+        {user?.roleInOrg == "OWNER" &&  <div className="flex items-center gap-2">
+          <p>Private</p>
+            <Switch onCheckedChange={handleToggleVisibility} checked={isPublic}/>
+          <p>Public</p>
+          </div>
+}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -189,10 +206,10 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
                   <DropdownMenuSeparator />
                 </>
               )}
-              
+              { user.roleInOrg !== "VIEWER" &&
               <DropdownMenuItem onClick={handleDelete} disabled={isDeleting}>
                 {isDeleting ? "Deleting..." : "Delete Video"}
-              </DropdownMenuItem>
+              </DropdownMenuItem>}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
