@@ -40,10 +40,19 @@ wss.on('connection', (ws:WebSocket) => {
                 }
                 subscribers.get(videoId)?.add(ws)
             }
+            
+            if(messageJson.type === "UNSUBSCRIBE"){
+                const {videoId} = messageJson
+                if(subscribers.has(videoId)){
+                    subscribers.get(videoId)?.delete(ws)
+                    if(subscribers.get(videoId)?.size === 0){
+                        subscribers.delete(videoId)
+                    }
+                }
+            }
         } catch (error) {
             console.log("error", error)
             ws.close()
-            
         }
     })
     ws.on('close', () => {
