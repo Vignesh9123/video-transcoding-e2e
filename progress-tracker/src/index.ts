@@ -23,7 +23,13 @@ redis.on('pmessage', (_, channel, message)=>{
     if(!subscribers.has(videoId)) return
     subscribers.get(videoId)?.forEach(ws => {
         if(ws.readyState === WebSocket.OPEN){
-            ws.send(message)
+        const messageJson = JSON.parse(message.toString())
+        const msg = {
+            videoId,
+            progress: messageJson.progress,
+            status: messageJson.status
+        }
+        ws.send(JSON.stringify(msg))
         }
     })
 })
@@ -40,10 +46,11 @@ wss.on('connection', (ws:WebSocket) => {
                 }
                 subscribers.get(videoId)?.add(ws)
             }
-            
+
             if(messageJson.type === "UNSUBSCRIBE"){
                 const {videoId} = messageJson
                 if(subscribers.has(videoId)){
+                    if(!subscribers.get(videoId)?.has(ws)) return
                     subscribers.get(videoId)?.delete(ws)
                     if(subscribers.get(videoId)?.size === 0){
                         subscribers.delete(videoId)
