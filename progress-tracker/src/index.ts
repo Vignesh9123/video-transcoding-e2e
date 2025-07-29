@@ -1,7 +1,7 @@
 import {WebSocketServer, WebSocket} from 'ws'
 import RedisClient from 'ioredis'
 import dotenv from 'dotenv'
-
+import jwt from 'jsonwebtoken'
 dotenv.config()
 const wss = new WebSocketServer({ port: 9090 })
 const subscribers:Map<string,Set<WebSocket>> = new Map<string,Set<WebSocket>>();
@@ -35,7 +35,22 @@ redis.on('pmessage', (_, channel, message)=>{
 })
 
 
-wss.on('connection', (ws:WebSocket) => {
+wss.on('connection', (ws:WebSocket, req) => {
+    try {
+        const reqUrl = new URL(req?.url!, `http://${req.headers.host}`);
+        const token = reqUrl.searchParams.get("token");
+    
+        if (!token) {
+          ws.close(4001, "Token missing");
+          return;
+        }
+    
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        (ws as any).user = decoded; // TODO: find a better way 
+
+      } catch (err) {
+        ws.close(4002, "Invalid token");
+      }
     ws.on('message', (message) => {
         try {
             const messageJson = JSON.parse(message.toString())
