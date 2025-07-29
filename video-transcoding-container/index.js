@@ -6,6 +6,7 @@ import { dirname } from 'path'
 import ffmpeg from 'fluent-ffmpeg'
 import { PrismaClient } from '@prisma/client'
 import { sendEmail } from './sendMail.js'
+import RedisClient from 'ioredis'
 const prisma = new PrismaClient()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -17,6 +18,8 @@ const s3Client = new S3Client({
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
 })
+
+const redis = new RedisClient(process.env.REDIS_URL)
 
 
 
@@ -87,6 +90,8 @@ async function adaptiveBitrateStreaming() {
 }
 
 // adaptiveBitrateStreaming()
+
+// process.on("")
 
 const getVideoDuration = (path) => {
     return new Promise((resolve, reject) => {
@@ -192,10 +197,7 @@ async function createHLSStream(videoPath, outputPath, variantsRes) {
 
                             const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / resolvedVariants.length;
 
-                            prisma.video.update({
-                                where: { id: process.env.KEY },
-                                data: { progress: overallProgress }
-                            }).catch(e => console.error(`Failed to update progress:`, e));
+                            redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: overallProgress, status: overallProgress === 100 ? 'COMPLETED' : 'TRANSCODING' })).catch(e => console.error(`Redis progress publish failed`, e));
                         }
                     })
                     .on('end', () => {
@@ -204,10 +206,7 @@ async function createHLSStream(videoPath, outputPath, variantsRes) {
 
                         const overallProgress = variantProgress.reduce((a, b) => a + b, 0) / resolvedVariants.length;
 
-                        prisma.video.update({
-                            where: { id: process.env.KEY },
-                            data: { progress: overallProgress }
-                        }).catch(e => console.error(`Final update failed`, e));
+                        redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: overallProgress , status: overallProgress === 100 ? 'COMPLETED' : 'TRANSCODING'})).catch(e => console.error(`Redis progress publish failed`, e));
 
                         resolve();
                     })
