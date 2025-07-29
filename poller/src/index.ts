@@ -138,6 +138,10 @@ async function init() {
                                     {
                                         name:'MAIL_APP_PASSWORD',
                                         value: process.env.MAIL_APP_PASSWORD
+                                    },
+                                    {
+                                        name:'REDIS_URL',
+                                        value: process.env.REDIS_URL
                                     }
                                 ]
                             }
