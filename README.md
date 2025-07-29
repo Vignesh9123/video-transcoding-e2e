@@ -91,12 +91,3 @@ StreamForge was tested across multiple videos and compute environments:
 - DRM + Watermarking for content protection.
 - ML-based moderation and thumbnail generation.
 
----
-
-This project was developed in collaboration with:
-
-- [**M Samudhyatha**](https://github.com/Samudhyatha)
-- [**Adithi HR**](https://github.com/adithihr125)
-- [**Sanath PM**](https://github.com/SANATHPM)
-
-Under the guidance of **Dr. M. A. Anusuya**, Department of Computer Science and Engineering, JSSSTU, Mysuru.
