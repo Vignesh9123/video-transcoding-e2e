@@ -5,7 +5,7 @@
 ---
 ## Architecture Design
 
-<img width="2048" height="1197" alt="image" src="https://github.com/user-attachments/assets/14a53b7f-0368-4d19-b729-2c2a970ff37e" />
+<img width="1649" height="796" alt="image" src="https://github.com/user-attachments/assets/bf636c24-ed3c-4843-80e7-2cc385f8ebb7" />
 
 ---
 ## 📁 Folder Structure
