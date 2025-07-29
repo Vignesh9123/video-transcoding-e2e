@@ -90,7 +90,7 @@ const VideoList = () => {
 
     fetchVideos();
 
-    const scket = new WebSocket("ws://localhost:9090");
+    const scket = new WebSocket(`ws://localhost:9090?token=${localStorage.getItem("token")}`);
     setSocket(scket);
     return () => {
       scket.close();
@@ -123,14 +123,6 @@ const VideoList = () => {
         return
       }
       setVideos((prevVideos) => prevVideos.map((v) => {
-        if(v.id === video.id) return {
-          ...v,
-          status: data.status,
-          progress: data.progress
-        }
-        return v;
-      }))
-      setFilteredVideos((prevVideos) => prevVideos.map((v) => {
         if(v.id === video.id) return {
           ...v,
           status: data.status,
