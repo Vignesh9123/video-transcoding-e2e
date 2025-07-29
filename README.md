@@ -15,6 +15,7 @@
 ├── frontend                  # React + TailwindCSS app for video uploads and playback
 ├── poller                   # SQS polling service that validates and triggers processing
 ├── primary-backend          # Express.js API server (auth, role control, presigned URLs)
+├── progress-tracker         # WebSocket service for real-time video transcoding progress updates using Redis PubSub
 ├── video-transcoding-container # Dockerized FFmpeg processor handling video segmentation
 ├── .gitignore
 
@@ -30,6 +31,7 @@
 2. **Trigger**: S3 upload triggers an event → SQS message is sent.
 3. **Polling**: The `poller` service listens to SQS, validates events.
 4. **Processing**: Upon validation, a Docker container (in `video-transcoding-container`) is launched in a Fargate orchestrated by ECS.
+5. **Progress**: Real-time progress updates are sent to the `progress-tracker` service via Redis PubSub. `progress-tracker` uses WebSockets to notify the frontend of transcoding status.
 5. **Output**: FFmpeg segments video into `.ts` chunks and `.m3u8` playlists → pushed to main S3 bucket.
 6. **Playback**: Frontend streams the video using HLS via a video player.
 
@@ -43,6 +45,7 @@
 | Backend API | Node.js, Express, Prisma ORM |
 | Polling Engine | Node.js, AWS SDK |
 | Video Processing | FFmpeg in Docker |
+| Real-time Updates | Redis PubSub, WebSockets |
 | Database | PostgreSQL |
 | Cloud Infra | AWS S3, SQS, ECS (or Fargate), IAM |
 
