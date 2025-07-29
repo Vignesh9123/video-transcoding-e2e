@@ -20,49 +20,54 @@ const VideoList = () => {
   const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const {user} = useAuth();
-  const getVideoStatuses = useCallback(async () => {
-    const videoIds = videos
-      .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING" || vid.status === "UPLOADING")
-      .map((vid) => vid.id);
+  const [socket , setSocket] = useState<WebSocket | null>(null);
+  const [subscribedVideos, setSubscribedVideos] = useState<string[]>([]);
+  // const getVideoStatuses = useCallback(async () => {
+  //   const videoIds = videos
+  //     .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING" || vid.status === "UPLOADING")
+  //     .map((vid) => vid.id);
     
-    console.log("Getting video statuses for", videoIds);
+  //   console.log("Getting video statuses for", videoIds);
 
-    if (videoIds.length === 0) return;
+  //   if (videoIds.length === 0) return;
 
-    try {
-      const { data } = await axios.post('http://localhost:3000/api/video/get-video-status/bulk', { videoIds }, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        withCredentials: true
-      });
+  //   try {
+  //     const { data } = await axios.post('http://localhost:3000/api/video/get-video-status/bulk', { videoIds }, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Authorization": `Bearer ${localStorage.getItem("token")}`,
+  //       },
+  //       withCredentials: true
+  //     });
 
-      const responseData: {
-        status: VideoStatus;
-        progress: number;
-        videoId: string;
-      }[] = data.data;
+  //     const responseData: {
+  //       status: VideoStatus;
+  //       progress: number;
+  //       videoId: string;
+  //     }[] = data.data;
 
-      setVideos((prevVideos) =>
-        prevVideos.map((video) => {
-          const updated = responseData.find((v) => v.videoId === video.id);
-          if (updated) {
-            return { ...video, status: updated.status, progress: updated.progress };
-          } else {
-            return video;
-          }
-        })
-      );
-    } catch (error) {
-      console.error("Failed to update video statuses", error);
-    }
-  }, [videos]); // Dependency on videos
+  //     setVideos((prevVideos) =>
+  //       prevVideos.map((video) => {
+  //         const updated = responseData.find((v) => v.videoId === video.id);
+  //         if (updated) {
+  //           return { ...video, status: updated.status, progress: updated.progress };
+  //         } else {
+  //           return video;
+  //         }
+  //       })
+  //     );
+  //   } catch (error) {
+  //     console.error("Failed to update video statuses", error);
+  //   }
+  // }, [videos]); // Dependency on videos
+
 
   const deleteVideo = (videoId: string) => {
     console.log("Deleting video", videoId);
     setVideos((prevVideos) => prevVideos.filter((video) => video.id !== videoId));
   }
+
+
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -84,20 +89,75 @@ const VideoList = () => {
     };
 
     fetchVideos();
+
+    const scket = new WebSocket("ws://localhost:9090");
+    setSocket(scket);
+    return () => {
+      scket.close();
+      if(socket) socket.close();
+    }
   }, []); 
+
+  useEffect(()=>{
+    if(!socket || socket.readyState !== WebSocket.OPEN) return;
+    const transcodingVideos = videos.filter((video) => video.status !== "COMPLETED" && video.status !== "FAILED");
+    const transcodingVideoIds = transcodingVideos.map((video) => video.id);
+    transcodingVideoIds.forEach((videoId) => {
+      if(subscribedVideos.includes(videoId)) return;
+      socket.send(JSON.stringify({
+        type: "SUBSCRIBE",
+        videoId: videoId
+      }))
+      setSubscribedVideos((prev) => [...prev, videoId])
+    })
+  }, [videos])
+
+  useEffect(()=>{
+    if(!socket) return;
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data.toString());
+      console.log(data)
+      const video = videos.find((video) => video.id == data.videoId);
+      if(!video){
+        console.log("Video not found");
+        return
+      }
+      setVideos((prevVideos) => prevVideos.map((v) => {
+        if(v.id === video.id) return {
+          ...v,
+          status: data.status,
+          progress: data.progress
+        }
+        return v;
+      }))
+      setFilteredVideos((prevVideos) => prevVideos.map((v) => {
+        if(v.id === video.id) return {
+          ...v,
+          status: data.status,
+          progress: data.progress
+        }
+        return v;
+      }))
+      if(data.status === "COMPLETED" || data.status === "FAILED") {
+        setSubscribedVideos((prev) => prev.filter((id) => id !== video.id));
+      }
+    }
+    return () => {
+      socket.onmessage = null;
+    }
+  }, [socket, videos])
 
   useEffect(() => {
     if(searchQuery === '') setFilteredVideos(videos);
     else setFilteredVideos(videos.filter((video) => video.name.toLowerCase().includes(searchQuery.toLowerCase())));
   }, [searchQuery]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      getVideoStatuses();
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [getVideoStatuses]); 
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     getVideoStatuses();
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, [getVideoStatuses]); 
   useEffect(() => {
     setFilteredVideos(
       videos.filter((video) => activeFilter === "all" || video.status === activeFilter)
