@@ -86,7 +86,6 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     return new Promise(async(resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', presignedUrl);
-    const arrayBuffer = await file.arrayBuffer();
     
     xhr.setRequestHeader('Content-Type', file.type)
     xhr.setRequestHeader('key', key)
@@ -117,6 +116,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
       reject(new Error('Upload aborted'));
     };
     
+    const arrayBuffer = await file.arrayBuffer();
     xhr.send(arrayBuffer);
     });
   }
@@ -136,12 +136,14 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
     const uploadHandler = async(e: React.FormEvent) => {
       e.preventDefault();
       if(!validateForm()) return
+      let videoId;
       try {
         if (!uploadedFile) return
         setOpen(true)
         setIsSubmitting(true)
         const res = await axiosClient.post('/api/video/get-presigned-url', {name: title || uploadedFile.name, isPublic, selectedResolutions})
         const {signedUrl, key} = res.data
+        videoId = key
         console.log('signedUrl', signedUrl)
         // const url = new URL(signedUrl)
         // console.log('url', url)
@@ -174,6 +176,8 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         navigate("/dashboard")
       } catch (error) {
         console.error('error', error)
+        if(videoId)
+          await axiosClient.post('/api/video/update-video-status', {videoId, status: "FAILED"})
         toast({
           title: "Upload Failed",
           description: "Failed to upload video.",
