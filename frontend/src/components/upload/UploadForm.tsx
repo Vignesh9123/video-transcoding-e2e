@@ -116,8 +116,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
       reject(new Error('Upload aborted'));
     };
     
-    const arrayBuffer = await file.arrayBuffer();
-    xhr.send(arrayBuffer);
+    xhr.send(file);
     });
   }
 
@@ -180,7 +179,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
           await axiosClient.post('/api/video/update-video-status', {videoId, status: "FAILED"})
         toast({
           title: "Upload Failed",
-          description: "Failed to upload video.",
+          description: "Make sure you are uploading the file from the device storage.",
           variant: "destructive"
         })
       }
