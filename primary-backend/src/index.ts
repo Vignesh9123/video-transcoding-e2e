@@ -17,7 +17,7 @@ app.use(cookieParser())
 app.use(express.json())
 
 app.get("/", (req, res) => {
-    res.send('Hello World')
+    res.send('I am waiting')
 })
 app.get('/health', (req, res) => {
     res.send('OK')
