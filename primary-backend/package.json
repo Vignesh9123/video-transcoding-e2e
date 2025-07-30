@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node dist/index.js",
     "build": "tsc -b",
-    "dev":"npm run build && npm run start",
+    "dev": "npm run build && npm run start",
     "db:migrate": "npx prisma migrate dev",
     "db:studio": "npx prisma studio",
     "db:generate": "npx prisma generate",
@@ -26,7 +26,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "firebase-admin": "^13.4.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.8",

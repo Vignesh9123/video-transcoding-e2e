@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser'
 import { config } from './config'
 import dotenv from 'dotenv'
 const app = express()
-
+app.set('trust proxy', true)
 dotenv.config()
 
 app.use(cors(

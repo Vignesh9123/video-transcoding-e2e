@@ -105,11 +105,11 @@ async function init() {
                                 environment: [
                                     {
                                         name: 'AWS_ACCESS_KEY_ID',
-                                        value: process.env.AWS_ACCESS_KEY_ID
+                                        value: process.env.AWS_ACCESS_KEY_ID // TODO: Use ECS IAM instead
                                     },
                                     {
                                         name: 'AWS_SECRET_ACCESS_KEY',
-                                        value: process.env.AWS_SECRET_ACCESS_KEY
+                                        value: process.env.AWS_SECRET_ACCESS_KEY // TODO: Use ECS IAM instead
                                     },
                                     {
                                         name: 'AWS_REGION',
@@ -224,7 +224,5 @@ async function init() {
     catch (error) {
         console.log(error)
     }
-   
-
 }
 init()
