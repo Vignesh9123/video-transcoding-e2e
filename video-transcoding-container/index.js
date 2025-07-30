@@ -570,6 +570,11 @@ async function HLSStreaming() {
     catch (error) {
         console.log(error)
     }
+    finally {
+        console.log("Finally reached")
+        redis.disconnect()
+        process.exit(0)
+    }
 }
 
 HLSStreaming()
