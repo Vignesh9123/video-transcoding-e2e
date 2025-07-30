@@ -10,6 +10,7 @@ import axios from 'axios';
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "../ui/input";
 import { axiosClient } from "@/config/axiosConfig";
+import { WS_URL } from "@/constants";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -82,7 +83,7 @@ const VideoList = () => {
 
     fetchVideos();
 
-    const scket = new WebSocket(`ws://localhost:9090?token=${localStorage.getItem("token")}`);
+    const scket = new WebSocket(`${WS_URL}/?token=${localStorage.getItem("token")}`);
     setSocket(scket);
     return () => {
       scket.close();
