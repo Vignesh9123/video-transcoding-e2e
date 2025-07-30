@@ -1,0 +1,1 @@
+export const PRIMARY_BACKEND_URL = import.meta.env.VITE_PRIMARY_BACKEND_URL
