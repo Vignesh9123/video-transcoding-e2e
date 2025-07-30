@@ -83,9 +83,10 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
   };
 
   function uploadToS3PresignedUrl(file: File, presignedUrl: string, key: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('PUT', presignedUrl);
+    const arrayBuffer = await file.arrayBuffer();
     
     xhr.setRequestHeader('Content-Type', file.type)
     xhr.setRequestHeader('key', key)
@@ -116,7 +117,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
       reject(new Error('Upload aborted'));
     };
     
-    xhr.send(file);
+    xhr.send(arrayBuffer);
     });
   }
 
