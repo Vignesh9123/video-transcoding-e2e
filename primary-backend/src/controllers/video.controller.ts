@@ -442,3 +442,52 @@ export const toggleVideoVisibility = async(req: Request, res: Response)=>{
         })
     }
 }
+
+export const updateVideoStatus = async(req: Request, res: Response)=>{
+    try {
+        const {videoId, status} = req.body;
+        const userId = req.user.id
+        
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId
+            }
+        })
+        if(!user) throw new Error("No user with that ID")
+        
+        const video = await prisma.video.findFirst({
+            where:{
+                id: videoId
+            }
+        })
+        if(!video) throw new Error("No video with that ID")
+        if(user.organization != video.organization || (user.roleInOrg != "OWNER" && user.roleInOrg != "EDITOR")) throw new Error("Unauthorized");
+        if(user.roleInOrg == "EDITOR" && user.id != video.userId) throw new Error("Unauthorized");
+        if(status != "FAILED"){ // We only allow updating status to "FAILED" coz that's the only use case right now
+            res.status(400).json({
+                success: false,
+                message: "Please provide correct status"
+            })
+            return
+        }
+        await prisma.video.update({
+            where: {
+                id: videoId
+            },
+            data: {
+                status
+            }
+        })
+        res.status(200).json({
+            success: true,
+            message: "Video status updated successfully"
+        })
+        return
+    } catch (error: any) {
+        console.log("Error", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        })
+    }
+}
