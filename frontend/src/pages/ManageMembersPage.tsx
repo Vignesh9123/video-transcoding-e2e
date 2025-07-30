@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import axios from "axios";
 import Navbar from "@/components/layout/Navbar";
+import { axiosClient } from "@/config/axiosConfig";
 
 interface Member {
     id: string;
@@ -40,9 +41,8 @@ const ManageMembersPage = () => {
 
     const handleRoleChange = async(memberId: string, newRole: Member["roleInOrg"]) => {
        try {
-         await axios.post('http://localhost:3000/api/org/update-role',
-             { userId: memberId, orgId: user.organization, role: newRole },
-             { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` }, withCredentials: true });
+         await axiosClient.post('/api/org/update-role',
+             { userId: memberId, orgId: user.organization, role: newRole });
          setMembers(prev =>
              prev.map(member =>
                  member.id === memberId ? { ...member, roleInOrg: newRole } : member
@@ -64,13 +64,7 @@ const ManageMembersPage = () => {
 
     const fetchMembers = async () => {
         try {
-            const response = await axios.get(`http://localhost:3000/api/org/members/${user.organization}`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem("token")}`
-                },
-                withCredentials: true
-            });
+            const response = await axiosClient.get(`/api/org/members/${user.organization}`);
             console.log('response', response.data);
             setMembers(response.data.users);
         } catch (error) {
@@ -101,9 +95,8 @@ const ManageMembersPage = () => {
 
     const handleDeleteMember = async (memberId: string) => {
         try {
-            await axios.post('http://localhost:3000/api/org/remove',
-                { userId: memberId, orgId: user.organization },
-                { headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` }, withCredentials: true });
+            await axiosClient.post('/api/org/remove',
+                { userId: memberId, orgId: user.organization });
             setMembers(prev => prev.filter(member => member.id !== memberId));
             toast({
                 title: "Member Removed",

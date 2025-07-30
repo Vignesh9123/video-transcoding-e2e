@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { axiosClient } from "@/config/axiosConfig";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -15,13 +16,7 @@ const ProfilePage = () => {
     userCount: number;
   }>(null);
   async function fetchOrganization() {
-      const response = await axios.get(`http://localhost:3000/api/org/data/${user.organization}`,{
-          headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("token")}`
-          },
-          withCredentials: true
-      })
+      const response = await axiosClient.get(`/api/org/data/${user.organization}`)
       console.log('response', response.data);
       setOrganizationDetails({
         name: response.data.name,

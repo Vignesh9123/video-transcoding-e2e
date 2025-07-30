@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import axios from "axios";
+import { axiosClient } from "@/config/axiosConfig";
 
 const CreateOrgPage = () => {
   const [orgName, setOrgName] = useState("");
@@ -39,14 +40,8 @@ const CreateOrgPage = () => {
     setIsLoading(true);
     
     try {
-      const response = await axios.post("http://localhost:3000/api/org/create", {
+      const response = await axiosClient.post("/api/org/create", {
         name: orgName
-      },{
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        withCredentials: true
       })
       
       toast({

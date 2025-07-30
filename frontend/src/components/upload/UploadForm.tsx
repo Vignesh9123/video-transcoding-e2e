@@ -21,6 +21,7 @@ import ProgressDialogBox from "./ProgressDialogBox";
 import axios from "axios";
 import { Switch } from "../ui/switch";
 import { useAuth } from "@/context/AuthContext";
+import { axiosClient } from "@/config/axiosConfig";
 
 interface UploadFormProps {
   onFileChange: (file: File | null) => void;
@@ -138,7 +139,7 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         if (!uploadedFile) return
         setOpen(true)
         setIsSubmitting(true)
-        const res = await axios.post('http://localhost:3000/api/video/get-presigned-url', {name: title || uploadedFile.name, isPublic, selectedResolutions}, {withCredentials: true})
+        const res = await axiosClient.post('/api/video/get-presigned-url', {name: title || uploadedFile.name, isPublic, selectedResolutions})
         const {signedUrl, key} = res.data
         console.log('signedUrl', signedUrl)
         // const url = new URL(signedUrl)

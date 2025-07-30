@@ -23,6 +23,7 @@ import { Video } from "@/lib/mock-data";
 import {toast} from '@/components/ui/sonner'
 import axios from "axios";
 import { Switch } from "../ui/switch";
+import { axiosClient } from "@/config/axiosConfig";
 
 interface VideoCardProps {
   video: Video;
@@ -44,9 +45,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   };
 
   const handleShare = async() => {
-    const promise = axios.get("http://localhost:3000/api/video/get-video-url/"+video.id, {
-      withCredentials: true
-    })
+    const promise = axiosClient.get(`/api/video/get-video-url/${video.id}`)
     .then(({data})=>{
       navigator.clipboard.writeText(data.data);
     })
@@ -71,9 +70,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const deletePromise =  axios.delete("http://localhost:3000/api/video/delete-video/"+video.id, {
-        withCredentials: true
-      }).then(()=>{
+      const deletePromise =  axiosClient.delete(`/api/video/delete-video/${video.id}`).then(()=>{
         if(videoDeleted) videoDeleted(video.id);
       })
       toast.promise(deletePromise, {
@@ -92,13 +89,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
 
   const handleToggleVisibility = async() => {
     try {
-      const togglePromise = axios.get("http://localhost:3000/api/video/toggle-visibility/"+video.id, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        withCredentials: true
-      }).then(()=>{
+      const togglePromise = axiosClient.get(`/api/video/toggle-visibility/${video.id}`).then(()=>{
         setIsPublic(value=>!value);
       })
       toast.promise(togglePromise, {

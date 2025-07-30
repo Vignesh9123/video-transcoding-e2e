@@ -9,6 +9,7 @@ import { Video, VideoStatus } from "@/lib/mock-data";
 import axios from 'axios';
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "../ui/input";
+import { axiosClient } from "@/config/axiosConfig";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -32,14 +33,7 @@ const VideoList = () => {
   //   if (videoIds.length === 0) return;
 
   //   try {
-  //     const { data } = await axios.post('http://localhost:3000/api/video/get-video-status/bulk', { videoIds }, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "Authorization": `Bearer ${localStorage.getItem("token")}`,
-  //       },
-  //       withCredentials: true
-  //     });
-
+  //     const { data } = await axiosClient.post('/api/video/get-video-status/bulk', { videoIds });
   //     const responseData: {
   //       status: VideoStatus;
   //       progress: number;
@@ -72,9 +66,7 @@ const VideoList = () => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const userVideos = await axios.get("http://localhost:3000/api/video/get-videos", {
-          withCredentials: true
-        });
+        const userVideos = await axiosClient.get("/api/video/get-videos");
         console.log("Response", userVideos.data);
         setVideos(userVideos.data.data);
       } catch (error) {

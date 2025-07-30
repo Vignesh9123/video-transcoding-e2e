@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import axios from 'axios';
+import { axiosClient } from '@/config/axiosConfig';
 
 interface AuthUser {
   id: string;
@@ -31,13 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getUser = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/auth/current-user", {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        withCredentials: true,
-      });
+      const response = await axiosClient.get("/api/auth/current-user");
       setUser(response.data.user);
       console.log("User with data fetched", response.data.user)
     } catch (error) {
@@ -66,16 +61,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = {
         idtoken
       };
-      const signInPromise = axios
+      const signInPromise = axiosClient
         .post(
-          "http://localhost:3000/api/auth/google-login",
-          userData,
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            withCredentials: true,
-          }
+          "/api/auth/google-login",
+          userData
         )
         .then((response) => {
           localStorage.setItem("token", response.data.token);
@@ -114,13 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await axios.get("http://localhost:3000/api/auth/logout", {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${localStorage.getItem("token")}`,
-      },
-      withCredentials: true
-    })
+      await axiosClient.get("/api/auth/logout")
     setUser(null);
     localStorage.removeItem("token");
     toast.success("Logged out successfully.");

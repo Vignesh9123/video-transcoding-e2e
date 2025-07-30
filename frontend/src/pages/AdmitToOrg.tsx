@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import {  Plus, X } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import axios from "axios";
+import { axiosClient } from "@/config/axiosConfig";
 
 const inviteSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -38,18 +39,11 @@ const AdmitUsersPage = () => {
   const onSubmit = async (values: InviteFormValues) => {
     console.log('admit',values);
     try {
-      const response = await axios.post("http://localhost:3000/api/org/admit", {
+      const response = await axiosClient.post("/api/org/admit", {
         email: values.email,
         role: values.role
-      }, {
-          headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${localStorage.getItem("token")}`
-          },
-          withCredentials: true
       })
-      
-            
+               
       toast({
         title: "User Admitted",
         description: `User with email ${values.email} is added to your organization as ${values.role} `,
