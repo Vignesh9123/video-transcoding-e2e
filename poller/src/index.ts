@@ -216,7 +216,7 @@ async function init() {
     
     
             else {
-                console.log('No messages');
+                console.log('No messages in queue');
                 continue
             }
         }
