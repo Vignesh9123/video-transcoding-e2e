@@ -454,6 +454,7 @@ async function HLSStreaming() {
             console.log('Video not found')
             return
         }
+        redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: 0, status: 'TRANSCODING' }))
         const command = new GetObjectCommand({
             Bucket: process.env.BUCKET,
             Key: process.env.KEY
