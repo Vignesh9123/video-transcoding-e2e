@@ -125,6 +125,10 @@ const VideoList = () => {
       }))
       if(data.status === "COMPLETED" || data.status === "FAILED") {
         setSubscribedVideos((prev) => prev.filter((id) => id !== video.id));
+        socket.send(JSON.stringify({
+          type: "UNSUBSCRIBE",
+          videoId: video.id
+        }))
       }
     }
     return () => {
