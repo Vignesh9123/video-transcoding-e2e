@@ -7,7 +7,7 @@ const wss = new WebSocketServer({ port: 9090 })
 const subscribers:Map<string,Set<WebSocket>> = new Map<string,Set<WebSocket>>();
 const redis = new RedisClient(process.env.REDIS_URL!)
 
-redis.on('connect', () => console.log("CONNECTED TO REDIS"))
+redis.on('connect', () => console.log("CONNECTED TO REDIS DB"))
 redis.psubscribe('video-progress*', (err , content)=>{
     if(err){
         console.log("error", err)
