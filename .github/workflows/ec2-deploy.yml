@@ -1,0 +1,23 @@
+name: Deploy to EC2
+
+on:
+  push:
+    paths:
+      - 'poller/**'
+      - 'primary-backend/**'
+      - 'progress-tracker/**'
+  pull_request:
+    paths:
+      - 'poller/**'
+      - 'primary-backend/**'
+      - 'progress-tracker/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH to EC2
+        run: |
+          echo "${{secrets.SSH_KEY}}" > ~/ssh_key
+          chmod 700 ~/ssh_key 
+          ssh -i ~/ssh_key -o StrictHostKeyChecking=no ubuntu@${{secrets.EC2_IP}} "cd /home/ubuntu/video-transcoding-e2e && git pull && pm2 restart all"
