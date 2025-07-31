@@ -1,6 +1,8 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import { PrismaClient, VideoStatus } from '@prisma/client'
+import { withAccelerate } from '@prisma/extension-accelerate'
+
 export const config = {
     PORT: Number(process.env.PORT || 3000),
     JWT_SECRET: String(process.env.JWT_SECRET || 'secret'),
@@ -13,4 +15,8 @@ export const config = {
     FIREBASE_PROJECT_ID: String(process.env.FIREBASE_PROJECT_ID || ''),
 }
 
-export const prisma = new PrismaClient()
+export const prisma = new PrismaClient().$extends(withAccelerate())
+
+export const prisma10MinsTTL = {
+    ttl: 60
+} 

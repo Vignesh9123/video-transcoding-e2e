@@ -1,16 +1,17 @@
 import { Request, Response } from "express";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { config, prisma } from "../config";
+import { config, prisma, prisma10MinsTTL } from "../config";
 import { generateToken } from "../utils";
 export const getPresignedUrl = async (req: Request, res: Response) => {
     try {
         const { name, isPublic, selectedResolutions } = req.body
         const { id } = req.user
-        const user = await prisma.user.findFirst({
+        const user = await prisma.user.findUnique({
             where: {
                 id
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if (!user?.organization) throw new Error('User is not part of any organization')
         const video = await prisma.video.create({
@@ -57,7 +58,8 @@ export const getUserVideos = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if (!user?.organization) throw new Error('User is not part of any organization')
         if (user.roleInOrg == "OWNER") {
@@ -78,7 +80,8 @@ export const getUserVideos = async (req: Request, res: Response) => {
                             email: true
                         }
                     }
-                }
+                },
+                cacheStrategy: prisma10MinsTTL
             })
             res.status(200).json({
                 data: videos,
@@ -96,7 +99,8 @@ export const getUserVideos = async (req: Request, res: Response) => {
                 }, {
                     name: 'asc'
                 }
-                ]
+                ],
+                cacheStrategy: prisma10MinsTTL
             })
             res.status(200).json({
                 data: videos,
@@ -123,7 +127,8 @@ export const getUserVideos = async (req: Request, res: Response) => {
                             email: true
                         }
                     }
-                }
+                },
+                cacheStrategy: prisma10MinsTTL
             })
             res.status(200).json({
                 data: videos,
@@ -203,10 +208,11 @@ export const getVideoStatus = async (req: Request, res: Response) => {
 export const deleteVideo = async (req: Request, res: Response) => {
     const videoId = req.params.videoId
     try {
-        const video = await prisma.video.findFirst({
+        const video = await prisma.video.findUnique({
             where: {
                 id: videoId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if (!video) {
             console.log("Theres no video with this id");
@@ -249,7 +255,8 @@ export const getVideoStatusBulk = async (req: Request, res: Response) => {
         const { videoIds }: { videoIds: string[] } = req.body
         for (let videoId of videoIds) {
             const video = await prisma.video.findUnique({
-                where: { id: videoId }
+                where: { id: videoId },
+                cacheStrategy: prisma10MinsTTL
             })
             if (video) {
                 if (video.userId.toString() === userId?.toString())
@@ -303,7 +310,8 @@ export const getVideoURL = async (req: Request, res: Response) => {
         const video = await prisma.video.findUnique({
             where: {
                 id: videoId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if (!video) {
             console.log("Theres no video with this id");
@@ -316,7 +324,8 @@ export const getVideoURL = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if (!user) {
             console.log("Theres no user with this id");
@@ -410,14 +419,16 @@ export const toggleVideoVisibility = async(req: Request, res: Response)=>{
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if(!user) throw new Error("No user with that ID")
         if(user.roleInOrg != "OWNER") throw new Error("Unauthorized");
-        const video = await prisma.video.findFirst({
+        const video = await prisma.video.findUnique({
             where:{
                 id: videoId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if(!video) throw new Error("No video with that ID")
         if(user.organization != video.organization) throw new Error("Unauthorized");
@@ -451,14 +462,16 @@ export const updateVideoStatus = async(req: Request, res: Response)=>{
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if(!user) throw new Error("No user with that ID")
         
-        const video = await prisma.video.findFirst({
+        const video = await prisma.video.findUnique({
             where:{
                 id: videoId
-            }
+            },
+            cacheStrategy: prisma10MinsTTL
         })
         if(!video) throw new Error("No video with that ID")
         if(user.organization != video.organization || (user.roleInOrg != "OWNER" && user.roleInOrg != "EDITOR")) throw new Error("Unauthorized");
