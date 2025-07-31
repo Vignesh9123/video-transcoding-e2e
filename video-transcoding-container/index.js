@@ -91,7 +91,34 @@ async function adaptiveBitrateStreaming() {
 
 // adaptiveBitrateStreaming()
 
-// process.on("")
+async function checkAndUpdateVideoStatusBeforeShutdown() {
+  try {
+    const video = await prisma.video.findUnique({
+      where: {
+        id: process.env.KEY
+      }
+    })
+    if(!video) return
+    if(video.status === "TRANSCODING") {
+      await prisma.video.update({
+        where: {
+          id: process.env.KEY
+        },
+        data: {
+          status: "FAILED"
+        }
+      })
+      redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: 0, status: 'FAILED' }))
+
+    }
+  } catch (error) {
+    console.log('Error while checking and updating status of video before shutdown', error)
+  }
+}
+process.on("SIGABRT", () => checkAndUpdateVideoStatusBeforeShutdown());
+process.on("SIGINT", () => checkAndUpdateVideoStatusBeforeShutdown());
+process.on("SIGTERM", () => checkAndUpdateVideoStatusBeforeShutdown());
+
 
 const getVideoDuration = (path) => {
     return new Promise((resolve, reject) => {
