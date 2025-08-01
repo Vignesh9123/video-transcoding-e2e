@@ -36,7 +36,7 @@ export const currentUser = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({ where: { id: userId } , cacheStrategy: prisma10MinsTTL});
         if(!user) throw new Error("Error while fetching user");
         const token = generateToken({id:user.id});
-        res.status(200).json({ user, token , message: "Fetched current user" });
+        res.status(200).json({ user, token });
         return
     }
     catch(error:any){
