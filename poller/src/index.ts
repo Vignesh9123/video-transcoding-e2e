@@ -47,22 +47,24 @@ async function init() {
             const response = await sqsClient.send(command);
             if (response.Messages) {
                 const message = response.Messages[0];
-                // console.log(message);
-                // console.log(message.Body)
+                // console.log('Received message', message);
+                // console.log('Body', message.Body)
     
                 // Validation
                 //  const validExtensions = ['.mp4', '.mkv'];
                 const record = JSON.parse(message.Body!).Records?.[0]
-                if (!record) {
+                const isFromContainer = JSON.parse(message.Body!).type == 'fromContainer'
+                if (!record && !isFromContainer) {
                     continue;
                 }
+                let key = isFromContainer ? JSON.parse(message.Body!).videoId : decodeURIComponent(record.s3.object.key.replace(/\+/g, ' '));
+                let bucket = isFromContainer ? JSON.parse(message.Body!).bucket : record.s3.bucket.name
+                if(!isFromContainer) {
                 console.log(JSON.parse(message.Body!).Records?.[0].s3)
                 if (JSON.parse(message.Body!).Event == 's3:TestEvent') {
-                    console.log('Test event or invalid file type');
+                    console.log('Test event');
                     continue;
                 }
-                const bucket = record.s3.bucket.name
-                const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, ' '))
                 const command = new HeadObjectCommand({
                     Bucket: bucket,
                     Key: key
@@ -74,6 +76,7 @@ async function init() {
                 if (!contentType || !allowedContentTypes.includes(contentType)) {
                     console.log('Invalid file type');
                     continue;
+                }
                 }
     
                 // Spin up containers in ECS fargate cluster by the image in ECR 
@@ -114,6 +117,10 @@ async function init() {
                                     {
                                         name: 'AWS_REGION',
                                         value: 'ap-south-1'
+                                    },
+                                    {
+                                        name:'SQS_URL',
+                                        value: process.env.SQS_URL
                                     },
                                     {
                                         name: 'BUCKET',
