@@ -100,8 +100,15 @@ async function adaptiveBitrateStreaming() {
 
 // adaptiveBitrateStreaming()
 
-
+const MAX_RETRIES = 2
 async function sendFailedVideotoQueue(){
+  const dbVideo = await prisma.video.findUnique({
+    where: {
+      id: process.env.KEY
+    }
+  })
+  if(!dbVideo) return
+  if(dbVideo.retryCount >= MAX_RETRIES) return
   const messageBody = JSON.stringify({
     type: "fromContainer",
     videoId: process.env.KEY,
@@ -114,6 +121,14 @@ async function sendFailedVideotoQueue(){
     MessageBody: messageBody
   })
   await sqsClient.send(command)
+  await prisma.video.update({
+    where: {
+      id: process.env.KEY
+    },
+    data: {
+      retryCount: dbVideo.retryCount + 1
+    }
+  })
 }
 async function checkAndUpdateVideoStatusBeforeShutdown() {
   let isFailed = false;
