@@ -1,4 +1,5 @@
 import { GetObjectCommand, S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -18,6 +19,14 @@ const s3Client = new S3Client({
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
     }
 })
+
+const sqsClient = new SQSClient({
+  region: 'ap-south-1',
+  credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+  }
+});
 
 const redis = new RedisClient(process.env.REDIS_URL)
 
@@ -91,7 +100,23 @@ async function adaptiveBitrateStreaming() {
 
 // adaptiveBitrateStreaming()
 
+
+async function sendFailedVideotoQueue(){
+  const messageBody = JSON.stringify({
+    type: "fromContainer",
+    videoId: process.env.KEY,
+    status: "FAILED",
+    bucket: process.env.BUCKET
+  })
+
+  const command = new SendMessageCommand({
+    QueueUrl: process.env.SQS_URL,
+    MessageBody: messageBody
+  })
+  await sqsClient.send(command)
+}
 async function checkAndUpdateVideoStatusBeforeShutdown() {
+  let isFailed = false;
   try {
     const video = await prisma.video.findUnique({
       where: {
@@ -100,6 +125,7 @@ async function checkAndUpdateVideoStatusBeforeShutdown() {
     })
     if(!video) return
     if(video.status === "TRANSCODING") {
+      isFailed = true
       await prisma.video.update({
         where: {
           id: process.env.KEY
@@ -109,11 +135,23 @@ async function checkAndUpdateVideoStatusBeforeShutdown() {
         }
       })
       redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: 0, status: 'FAILED' }))
-
     }
   } catch (error) {
     console.log('Error while checking and updating status of video before shutdown', error)
   }
+
+  if(isFailed) {
+    console.log('Sending failed video to queue')
+    try {
+      await sendFailedVideotoQueue()
+      console.log('Failed video sent to queue')
+    } catch (error) {
+      console.log('Error while sending failed video to queue', error)
+    }
+  }
+
+  
+  
 }
 process.on("SIGABRT", () => checkAndUpdateVideoStatusBeforeShutdown());
 process.on("SIGINT", () => checkAndUpdateVideoStatusBeforeShutdown());
@@ -317,7 +355,7 @@ async function createHLSStream(videoPath, outputPath, variantsRes) {
                                 email: dbvideo.User.email,
                                 subject: `Video Transcoding Failed`,
                                 message
-                            })
+                            }) // TODO: Seperate function
                         } catch (error) {
                             console.error(`Failed to update video status:`, error);
                             const message = `
@@ -393,6 +431,13 @@ async function createHLSStream(videoPath, outputPath, variantsRes) {
                                 subject: `Video Transcoding Failed`,
                                 message
                             })
+                        }
+                        try {
+                          console.log('Sending failed video to queue')
+                          await sendFailedVideotoQueue()
+                          console.log('Failed video sent to queue')
+                        } catch (error) {
+                          console.error('Error while sending failed video to queue', error)
                         }
                         reject(err);
                     })
@@ -598,6 +643,13 @@ async function HLSStreaming() {
     catch (error) {
         console.log(error)
         try {
+          console.log('Sending failed video to queue')
+            await sendFailedVideotoQueue()
+            console.log('Failed video sent to queue')
+        } catch (error) {
+            console.log('Error while sending failed video to queue', error)
+        }
+        try {
           const dbvideo = await prisma.video.update({
               where: { id: process.env.KEY },
               data: { status: 'FAILED' },
@@ -609,7 +661,7 @@ async function HLSStreaming() {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Video Transcoding Complete</title>
+    <title>Video Transcoding Failed</title>
     <style>
       body {
         font-family: Arial, sans-serif;
