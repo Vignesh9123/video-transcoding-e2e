@@ -34,6 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await axiosClient.get("/api/auth/current-user");
       setUser(response.data.user);
+      localStorage.setItem("token", response.data.token);
       console.log("User with data fetched", response.data.user)
     } catch (error) {
         setUser(null);
