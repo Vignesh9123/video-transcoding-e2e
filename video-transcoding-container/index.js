@@ -140,6 +140,18 @@ async function checkAndUpdateVideoStatusBeforeShutdown() {
     })
     if(!video) return
     if(video.status === "TRANSCODING") {
+      if(video.retryCount < MAX_RETRIES) {
+        await prisma.video.update({
+          where: {
+            id: process.env.KEY
+          },
+          data: {
+            status: "PENDING"
+          }
+        })
+        redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: 0, status: 'PENDING' }))
+        return
+      }
       isFailed = true
       await prisma.video.update({
         where: {
@@ -293,11 +305,16 @@ async function createHLSStream(videoPath, outputPath, variantsRes) {
                     .on('error', async(err) => {
                         console.error(`Error transcoding ${variant.name}: ${err.message}`);
                         try {
+                            const video = await prisma.video.findUnique({
+                                where: { id: process.env.KEY }
+                            })
+                            if(video.retryCount >= MAX_RETRIES){
                             const dbvideo = await prisma.video.update({
                                 where: { id: process.env.KEY },
                                 data: { status: 'FAILED' },
                                 include: { User: true }
-                            })
+                            })   
+                            
                             const message = `
                             <!DOCTYPE html>
                     <html lang="en">
@@ -371,6 +388,7 @@ async function createHLSStream(videoPath, outputPath, variantsRes) {
                                 subject: `Video Transcoding Failed`,
                                 message
                             }) // TODO: Seperate function
+                          }
                         } catch (error) {
                             console.error(`Failed to update video status:`, error);
                             const message = `
@@ -665,11 +683,27 @@ async function HLSStreaming() {
             console.log('Error while sending failed video to queue', error)
         }
         try {
-          const dbvideo = await prisma.video.update({
-              where: { id: process.env.KEY },
-              data: { status: 'FAILED' },
-              include: { User: true }
+          const video = await prisma.video.findUnique({
+            where: {
+              id: process.env.KEY
+            }
           })
+
+          if(!video) return
+          if(video.retryCount >= MAX_RETRIES){
+            const dbVideo = await prisma.video.update({
+              where: {
+                id: video.id
+              },
+              data: {
+                status: 'FAILED'
+              },
+              include: {
+                User: true
+              }
+            })
+          redis.publish(`video-progress:${video.id}`, JSON.stringify({  status: 'FAILED' }))
+
           const message = `
           <!DOCTYPE html>
   <html lang="en">
@@ -727,7 +761,7 @@ async function HLSStreaming() {
       <div class="header">Video Transcoding Failed</div>
       <div class="content">
         <p>Hello,</p>
-        <p>Your video titled <strong>${dbvideo.name}</strong> has failed to be transcoded.</p>
+        <p>Your video titled <strong>${dbVideo.name}</strong> has failed to be transcoded.</p>
         <p>Please check the raw video file for any errors.</p>
         <p>If you did not initiate this task or believe this was an error, please disregard this message.</p>
       </div>
@@ -739,11 +773,22 @@ async function HLSStreaming() {
   </html>
           `
           await sendEmail({
-              email: dbvideo.User.email,
+              email: dbVideo.User.email,
               subject: `Video Transcoding Failed`,
               message
           })
-          redis.publish(`video-progress:${dbvideo.id}`, JSON.stringify({  status: 'FAILED' }))
+        }
+        else{
+          await prisma.video.update({
+            where: {
+              id: process.env.KEY
+            },
+            data: {
+              status: "PENDING"
+            }
+          })
+          redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: 0, status: 'PENDING' }))
+        }
 
       } catch (error) {
           console.error(`Failed to update video status:`, error);
