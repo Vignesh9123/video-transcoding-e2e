@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Just because we are migrating to next
+next-env.d.ts
+.next
