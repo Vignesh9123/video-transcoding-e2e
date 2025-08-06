@@ -12,10 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLocation} from 'react-router-dom'
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
-
+  const {pathname} = useLocation();
   return (
     <nav className="border-b bg-background">
       <div className="w-[95vw] md:w-screen md:container mx-auto px-4 flex items-center justify-between h-16">
@@ -42,20 +43,32 @@ const Navbar = () => {
           
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              {user.roleInOrg != "VIEWER" && <Button className="hidden md:block" variant="outline" asChild>
+              {user.roleInOrg != "VIEWER" &&  (pathname !== "/upload" ? <Button className="hidden md:block" variant="outline" asChild>
                 <Link to="/upload">Upload Video</Link>
-              </Button>}
+              </Button>: 
+              <Button className="hidden md:block" variant="outline" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            )}
               {
                 user?.roleInOrg === "OWNER" && (
+                  pathname !== "/admit-to-org" ?
                   <Button className="hidden md:block" variant="outline" asChild>
                     <Link to="/admit-to-org">Admit to Organization</Link>
+                  </Button> :
+                  <Button className="hidden md:block" variant="outline" asChild>
+                    <Link to="/dashboard">Dashboard</Link>
                   </Button>
                 )
               }
               {
                 user?.roleInOrg === "OWNER" && (
+                  pathname !== "/manage-members" ?
                   <Button className="hidden md:block" variant="outline" asChild>
                     <Link to="/manage-members">Manage Organization</Link>
+                  </Button>:
+                  <Button className="hidden md:block" variant="outline" asChild>
+                    <Link to="/dashboard">Dashboard</Link>
                   </Button>
                 )
               }
@@ -70,12 +83,12 @@ const Navbar = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
+                  {pathname !== "/dashboard" && <DropdownMenuItem asChild>
                     <Link to="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  </DropdownMenuItem>}
+                  {pathname !== "/profile" && <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
+                  </DropdownMenuItem>}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>
                     Log out

@@ -59,9 +59,6 @@ const LoginPage = () => {
         </div>
         <LoginForm />
       </div>
-      <footer className="py-6 text-center text-sm text-muted-foreground">
-        <p>© 2025 StreamForge. All rights reserved.</p>
-      </footer>
     </div>
   );
 };

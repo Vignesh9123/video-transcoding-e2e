@@ -176,7 +176,7 @@ const VideoList = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold">Your Videos</h2>
-        {user.roleInOrg != "VIEWER" && <Button asChild>
+        {user.roleInOrg != "VIEWER" && <Button className="block md:hidden"  asChild>
           <Link to="/upload">Upload New Video</Link>
         </Button>}
       </div>
