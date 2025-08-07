@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { GlowingEffect } from '@/components/ui/glowing-effect'
 import { X } from 'lucide-react'
 
-export default function HeroMotion() {
+export default function HeroDemo() {
   const [open, setOpen] = useState(false)
 
   return (
@@ -25,7 +25,6 @@ export default function HeroMotion() {
               <X className=' text-black dark:text-white cursor-pointer' />
               </div>
               <video
-                
                 muted
                 loop
                 playsInline
