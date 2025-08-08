@@ -2,6 +2,7 @@ import { Inter } from 'next/font/google'
 import { Metadata } from 'next'
 import './globals.css' 
 const inter = Inter({
+  variable: '--font-inter-mod',
   subsets: ['latin'],
 })
 import { Header } from '@/components/header'
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning >
-      <body className={`${inter.className} antialiased dark min-h-[300vh]`}>
+      <body className={`${inter.className}  antialiased dark min-h-[300vh]`}>
         <Header/>
         {children}
         </body>
