@@ -37,7 +37,7 @@ async function init() {
         const command = new ReceiveMessageCommand({
             QueueUrl: process.env.SQS_URL,
             MaxNumberOfMessages: 1,
-            VisibilityTimeout: 400, 
+            VisibilityTimeout: 360, 
             WaitTimeSeconds: 10,
         });
         console.log('Waiting for messages');
@@ -149,6 +149,10 @@ async function init() {
                                     {
                                         name:'REDIS_URL',
                                         value: process.env.REDIS_URL
+                                    },
+                                    {
+                                        name:'MESSAGE_RECEIPT_HANDLE',
+                                        value: message.ReceiptHandle
                                     }
                                 ]
                             }
@@ -164,15 +168,6 @@ async function init() {
                     }).catch((err) => {
                         console.error('Error starting container', err);
                     })
-                    .finally(async () => {
-                        console.log('Deleting message from SQS');
-                        const deleteMessageCommand = new DeleteMessageCommand({
-                            QueueUrl: process.env.SQS_URL,
-                            ReceiptHandle: message.ReceiptHandle
-                        });
-                        await sqsClient.send(deleteMessageCommand);
-                        console.log('Message deleted successfully from SQS');
-                    });
                 // Spin up containers locally
                 // const dockercommand = `docker run --rm \
                 // -e AWS_ACCESS_KEY_ID=${process.env.AWS_ACCESS_KEY_ID} \
