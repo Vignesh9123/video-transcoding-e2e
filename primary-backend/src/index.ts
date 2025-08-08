@@ -16,7 +16,7 @@ const limiter = rateLimit({
         res.status(429).json({ message: 'Too many requests' })
     }
 })
-// app.set('trust proxy', true)
+app.set('trust proxy', true)
 dotenv.config()
 
 app.use(cors(
