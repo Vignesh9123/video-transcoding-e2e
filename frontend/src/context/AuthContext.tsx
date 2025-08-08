@@ -76,8 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           else{
             navigate("/dashboard")
           }
-
-
+        })
+        .finally(() => {
+          setIsLoading(false);
         });
 
       toast.promise(signInPromise, {

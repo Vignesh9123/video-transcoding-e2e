@@ -33,7 +33,7 @@ const LoginForm = () => {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <Button className="w-full" type="submit" disabled={isLoading}>
-          {isLoading ? "Signing in..." : "Sign in with Google"}
+          {isLoading ? "Loading..." : "Sign in with Google"}
         </Button>
       </form>
     </Card>
