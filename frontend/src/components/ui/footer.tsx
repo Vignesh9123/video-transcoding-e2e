@@ -19,7 +19,7 @@ function Footer() {
             </h1>
            
             <p className="text-sm dark:text-gray-400 mt-5">
-              © {new Date().getFullYear()} Spectrum UI. All rights reserved.
+              © {new Date().getFullYear()} Streamforge. All rights reserved.
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">

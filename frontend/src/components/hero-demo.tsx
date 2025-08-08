@@ -12,7 +12,7 @@ export default function HeroDemo() {
        <AnimatePresence>
           {open && (
             <motion.div
-              layoutId="hello"
+              layoutId="hero-demo"
               className='absolute z-[10000] inset-0 flex items-center justify-center'
               initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
               animate={{ opacity: 1 , backdropFilter: "blur(5px)" }}
@@ -38,7 +38,7 @@ export default function HeroDemo() {
 
         <AnimatePresence mode="wait">
               <motion.div
-                layoutId="hello"
+                layoutId="hero-demo"
                 className={`relative h-full rounded-2xl border dark:hover:border-neutral-700 hover:border-neutral-400 p-2 md:rounded-xl md:p-2 cursor-pointer ${open ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
                 onClick={() =>{
                   window.scrollTo({
