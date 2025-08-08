@@ -30,8 +30,6 @@ app.use(express.json())
 app.use(limiter)
 
 app.get("/", (req, res) => {
-    console.log('ip',req.ip)
-    console.log('headers',req.headers['x-forwarded-for'])
     res.send('I am waiting')
 })
 app.get('/health', (req, res) => {
