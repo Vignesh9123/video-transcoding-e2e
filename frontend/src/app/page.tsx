@@ -5,6 +5,7 @@ import HeroDemo from '@/components/hero-demo'
 import HeroImage from '@/components/hero-image'
 import { Cover } from '@/components/ui/cover'
 import { Particles } from '@/components/ui/particles'
+import { CTA } from '@/components/ui/call-to-action'
 
 
 function Home() {
@@ -46,7 +47,7 @@ function Home() {
         </div>
       </div>
 
-      <section id="features" className='w-full bg-muted/30'>
+      <section id="features" className='w-full bg-muted/30 container mx-auto'>
         <div className='max-w-5xl mx-auto px-4 md:px-0 py-12 md:py-16 relative'>
         <Particles
           className="absolute inset-0 z-0 opacity-0 dark:opacity-50 "
@@ -246,6 +247,8 @@ function Home() {
           </div>
         </div>
       </section>
+      
+      <CTA/>
     </>
   )
 }
