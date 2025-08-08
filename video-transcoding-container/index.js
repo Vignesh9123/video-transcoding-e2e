@@ -1,5 +1,5 @@
 import { GetObjectCommand, S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs'
+import { DeleteMessageCommand, SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -544,6 +544,26 @@ function getContentType(filename) {
     }
 }
 
+const acknowledgeTheQueue = async() => {
+  try {
+    const deleteMessageCommand = new DeleteMessageCommand({
+      QueueUrl: process.env.SQS_URL,
+      ReceiptHandle: process.env.MESSAGE_RECEIPT_HANDLE 
+    });
+    await sqsClient.send(deleteMessageCommand);
+  } catch (error) { // Eventually this will go to another queue to process please dont judge me for now :)
+    try {
+      const deleteMessageCommand = new DeleteMessageCommand({
+        QueueUrl: process.env.SQS_URL,
+        ReceiptHandle: process.env.MESSAGE_RECEIPT_HANDLE 
+      });
+      await sqsClient.send(deleteMessageCommand);
+    } catch (error) {
+      console.log("Error deleting message", error)
+    }
+  }
+}
+
 // HLSStreaming() is the function that takes a video file from S3 and transcodes it to HLS format (break the video into smaller chunks and different resolutions) and uploads it to S3
 async function HLSStreaming() {
     try {
@@ -559,6 +579,7 @@ async function HLSStreaming() {
             console.log('Video not found')
             return
         }
+        await acknowledgeTheQueue()
         redis.publish(`video-progress:${process.env.KEY}`, JSON.stringify({ progress: 0, status: 'TRANSCODING' }))
         const command = new GetObjectCommand({
             Bucket: process.env.BUCKET,
