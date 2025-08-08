@@ -4,6 +4,18 @@ import cookieParser from 'cookie-parser'
 import { config } from './config'
 import dotenv from 'dotenv'
 const app = express()
+import { rateLimit } from 'express-rate-limit'
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, 
+	limit: 100, 
+	standardHeaders: 'draft-8',
+	legacyHeaders: false, 
+	ipv6Subnet: 56, 
+    handler: (req, res, next) => {
+        res.status(429).json({ message: 'Too many requests' })
+    }
+})
 app.set('trust proxy', true)
 dotenv.config()
 
@@ -15,6 +27,7 @@ app.use(cors(
 ))
 app.use(cookieParser())
 app.use(express.json())
+app.use(limiter)
 
 app.get("/", (req, res) => {
     res.send('I am waiting')
