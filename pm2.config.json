@@ -6,7 +6,10 @@
       "script": "npm",
       "args": "start",
       "exec_mode": "cluster",
-      "instances": 1
+      "instances": 1,
+      "out_file": "/home/ubuntu/.pm2/logs/sf-backend-out.log",
+      "error_file": "/home/ubuntu/.pm2/logs/sf-backend-error.log",
+      "log_file": "/home/ubuntu/.pm2/logs/sf-backend-combined.log"
     },
     {
       "name": "sf-poller",
@@ -14,7 +17,10 @@
       "script": "npm",
       "args": "start",
       "exec_mode": "cluster",
-      "instances": 1
+      "instances": 1,
+      "out_file": "/home/ubuntu/.pm2/logs/sf-poller-out.log",
+      "error_file": "/home/ubuntu/.pm2/logs/sf-poller-error.log",
+      "log_file": "/home/ubuntu/.pm2/logs/sf-poller-combined.log"
     },
     {
       "name": "sf-websocket",
@@ -22,7 +28,10 @@
       "script": "npm",
       "args": "start",
       "exec_mode": "cluster",
-      "instances": 1
+      "instances": 1,
+      "out_file": "/home/ubuntu/.pm2/logs/sf-websocket-out.log",
+      "error_file": "/home/ubuntu/.pm2/logs/sf-websocket-error.log",
+      "log_file": "/home/ubuntu/.pm2/logs/sf-websocket-combined.log"
     }
   ]
 }

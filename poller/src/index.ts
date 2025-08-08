@@ -37,11 +37,11 @@ async function init() {
         const command = new ReceiveMessageCommand({
             QueueUrl: process.env.SQS_URL,
             MaxNumberOfMessages: 1,
-            VisibilityTimeout: 360, 
+            VisibilityTimeout: 360,
             WaitTimeSeconds: 10,
         });
         console.log('Waiting for messages');
-    
+
         while (true) {
             console.log('Waiting for messages 2');
             const response = await sqsClient.send(command);
@@ -49,7 +49,7 @@ async function init() {
                 const message = response.Messages[0];
                 // console.log('Received message', message);
                 // console.log('Body', message.Body)
-    
+
                 // Validation
                 //  const validExtensions = ['.mp4', '.mkv'];
                 const record = JSON.parse(message.Body!).Records?.[0]
@@ -59,30 +59,30 @@ async function init() {
                 }
                 let key = isFromContainer ? JSON.parse(message.Body!).videoId : decodeURIComponent(record.s3.object.key.replace(/\+/g, ' '));
                 let bucket = isFromContainer ? JSON.parse(message.Body!).bucket : record.s3.bucket.name
-                if(!isFromContainer) {
-                console.log(JSON.parse(message.Body!).Records?.[0].s3)
-                if (JSON.parse(message.Body!).Event == 's3:TestEvent') {
-                    console.log('Test event');
-                    continue;
+                if (!isFromContainer) {
+                    console.log(JSON.parse(message.Body!).Records?.[0].s3)
+                    if (JSON.parse(message.Body!).Event == 's3:TestEvent') {
+                        console.log('Test event');
+                        continue;
+                    }
+                    const command = new HeadObjectCommand({
+                        Bucket: bucket,
+                        Key: key
+                    })
+                    const metadata = await s3Client.send(command)
+                    console.log('metadata', metadata)
+                    const contentType = metadata.ContentType
+                    const allowedContentTypes = ['video/mp4', 'video/quicktime', 'video/webm']
+                    if (!contentType || !allowedContentTypes.includes(contentType)) {
+                        console.log('Invalid file type');
+                        continue;
+                    }
                 }
-                const command = new HeadObjectCommand({
-                    Bucket: bucket,
-                    Key: key
-                })
-                const metadata = await s3Client.send(command)
-                console.log('metadata', metadata)
-                const contentType = metadata.ContentType
-                const allowedContentTypes = ['video/mp4', 'video/quicktime', 'video/webm']
-                if (!contentType || !allowedContentTypes.includes(contentType)) {
-                    console.log('Invalid file type');
-                    continue;
-                }
-                }
-    
+
                 // Spin up containers in ECS fargate cluster by the image in ECR 
                 // const bucket = record.s3.bucket.name
                 // const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, ' '))
-    
+
                 console.log(`Creating run task for ${key}`)
                 const runTaskCommand = new RunTaskCommand({
                     taskDefinition: process.env.AWS_VIDEO_TRANSCODER_TASK_DEFINITION_ARN!,
@@ -119,7 +119,7 @@ async function init() {
                                         value: 'ap-south-1'
                                     },
                                     {
-                                        name:'SQS_URL',
+                                        name: 'SQS_URL',
                                         value: process.env.SQS_URL
                                     },
                                     {
@@ -135,23 +135,23 @@ async function init() {
                                         value: process.env.AWS_TRANSCODED_OUTPUT_BUCKET_NAME
                                     },
                                     {
-                                        name:'DATABASE_URL',
+                                        name: 'DATABASE_URL',
                                         value: process.env.DATABASE_URL
                                     },
                                     {
-                                        name:'SENDER_EMAIL',
+                                        name: 'SENDER_EMAIL',
                                         value: process.env.SENDER_EMAIL
                                     },
                                     {
-                                        name:'MAIL_APP_PASSWORD',
+                                        name: 'MAIL_APP_PASSWORD',
                                         value: process.env.MAIL_APP_PASSWORD
                                     },
                                     {
-                                        name:'REDIS_URL',
+                                        name: 'REDIS_URL',
                                         value: process.env.REDIS_URL
                                     },
                                     {
-                                        name:'MESSAGE_RECEIPT_HANDLE',
+                                        name: 'MESSAGE_RECEIPT_HANDLE',
                                         value: message.ReceiptHandle
                                     }
                                 ]
@@ -159,7 +159,7 @@ async function init() {
                         ]
                     }
                 })
-    
+
                 console.log('Starting container');
                 await ecsClient.send(runTaskCommand)
                     .then((data) => {
@@ -184,16 +184,16 @@ async function init() {
                 // // Remove the volume mapping (Used for local testing)
                 //         // console.log('Running command', dockercommand)
                 // const containerProcess = exec(dockercommand);
-    
+
                 // containerProcess.stdout?.on('data', (data) => { // Used for real time logs from the container as in exec(dockercommand, (err, stdout, stderr) => {}), stdout and stderr are shown after the container exits
-    
+
                 //     console.log('Container output:', data.toString());
                 // });
-    
+
                 // containerProcess.stderr?.on('data', (data) => {
                 //     console.log('Container error:', data.toString());
                 // });
-    
+
                 // containerProcess.on('exit', async(code, signal) => {
                 //     if(code === 0){
                 //         console.log('Container exited successfully');
@@ -213,10 +213,10 @@ async function init() {
                 //     .on('close', (m) => {
                 //         console.log('Container closed', m);
                 //     })
-    
+
             }
-    
-    
+
+
             else {
                 console.log('No messages in queue');
                 continue
