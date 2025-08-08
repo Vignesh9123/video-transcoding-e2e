@@ -96,9 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("Failed to sign in. Please try again.");
       return;
     }
-    finally {
-      setIsLoading(false);
-    }
   };
 
 
