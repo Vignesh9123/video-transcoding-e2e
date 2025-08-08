@@ -6,6 +6,7 @@ import HeroImage from '@/components/hero-image'
 import { Cover } from '@/components/ui/cover'
 import { Particles } from '@/components/ui/particles'
 import { CTA } from '@/components/ui/call-to-action'
+import { Footer } from '@/components/ui/footer'
 
 
 function Home() {
@@ -249,6 +250,7 @@ function Home() {
       </section>
       
       <CTA/>
+      <Footer />
     </>
   )
 }
