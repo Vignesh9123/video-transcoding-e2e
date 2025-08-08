@@ -20,4 +20,4 @@ jobs:
         run: |
           echo "${{secrets.SSH_KEY}}" > ~/ssh_key
           chmod 700 ~/ssh_key 
-          ssh -i ~/ssh_key -o StrictHostKeyChecking=no ubuntu@${{secrets.EC2_IP}} "cd /home/ubuntu/video-transcoding-e2e && git pull && cd poller && npm install && npm run build && cd ../primary-backend && npm install && npm run build && cd ../progress-tracker && npm install && npm run build && cd .. && pm2 reload pm2.config.js"
+          ssh -i ~/ssh_key -o StrictHostKeyChecking=no ubuntu@${{secrets.EC2_IP}} "cd /home/ubuntu/video-transcoding-e2e && git pull && cd poller && npm install && npm run build && cd ../primary-backend && npm install && npm run build && cd ../progress-tracker && npm install && npm run build && cd .. && pm2 reload pm2.config.json"
