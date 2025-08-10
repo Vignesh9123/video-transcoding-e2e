@@ -10,8 +10,10 @@ import {
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
+import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 import { useState } from "react";
-
+import { usePathname } from "next/navigation";
 export function Header() {
   const navItems = [
     {
@@ -29,6 +31,8 @@ export function Header() {
   ];
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const {data} = authClient.useSession()
+  const pathname = usePathname();
 
   return (
     <div className="relative w-full">
@@ -36,11 +40,16 @@ export function Header() {
         {/* Desktop Navigation */}
         <NavBody>
           <NavbarLogo />
-          <NavItems items={navItems} />
-          <div className="flex items-center gap-4">
-            <NavbarButton variant="secondary">Login</NavbarButton>
+          {pathname === "/" && <NavItems items={navItems} />}
+          {!data?.session && <div className="flex items-center gap-4">
+            <NavbarButton href="/login" as={Link} variant="secondary">Login</NavbarButton>
             <NavbarButton variant="primary">Book a call</NavbarButton>
+          </div>}
+          {data?.session && <div className="flex items-center gap-4">
+            <NavbarButton href="/dashboard" as={Link} variant="secondary">Dashboard</NavbarButton>
+            <NavbarButton  onClick={async()=>{  await authClient.signOut() }} variant="primary">Logout</NavbarButton>
           </div>
+          }
         </NavBody>
 
         {/* Mobile Navigation */}

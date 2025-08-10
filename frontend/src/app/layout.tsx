@@ -6,6 +6,7 @@ const inter = Inter({
   subsets: ['latin'],
 })
 import { Header } from '@/components/header'
+import { Footer } from '@/components/ui/footer'
 
 export const metadata: Metadata = {
   title: 'StreamForge',
@@ -15,9 +16,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning >
-      <body className={`${inter.className}  antialiased dark min-h-[300vh]`}>
+      <body className={`${inter.className}  antialiased dark`}>
         <Header/>
+        <div className="min-h-screen">
+
         {children}
+        </div>
+        <Footer />
         </body>
     </html>
   )

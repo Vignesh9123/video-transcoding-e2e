@@ -3,7 +3,7 @@ import { Particles } from './ui/particles'
 
 function Features() {
   return (
-    <section id="features" className='w-full bg-muted/30 container mx-auto'>
+    <section id="features" className='w-full bg-muted/30 mx-auto'>
         <div className='max-w-5xl mx-auto px-4 md:px-0 py-12 md:py-16 relative'>
         <Particles
           className="absolute inset-0 z-0 opacity-0 dark:opacity-50 "
