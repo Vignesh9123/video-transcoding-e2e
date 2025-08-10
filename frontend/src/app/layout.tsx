@@ -18,7 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning >
       <body className={`${inter.className}  antialiased dark`}>
         <Header/>
-        <div className="min-h-screen">
+        <div className="min-h-screen mt-20 py-10">
 
         {children}
         </div>

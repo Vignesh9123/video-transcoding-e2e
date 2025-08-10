@@ -30,8 +30,19 @@ export function Header() {
     },
   ];
 
+  const dashboardNavItems = [
+    {
+      name: "Dashboard",
+      link: "/dashboard",
+    },
+    {
+      name: "Upload",
+      link: "/upload",
+    },
+  ];
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const {data} = authClient.useSession()
+  const {data, isPending = true} = authClient.useSession()
   const pathname = usePathname();
 
   return (
@@ -41,12 +52,16 @@ export function Header() {
         <NavBody>
           <NavbarLogo />
           {pathname === "/" && <NavItems items={navItems} />}
-          {!data?.session && <div className="flex items-center gap-4">
+          {(pathname === "/dashboard" || pathname === "/upload") && data?.session && <NavItems items={dashboardNavItems} />}
+          {
+            isPending && <NavItems items={[{name: "Loading...", link: "#"}]} />
+          }
+          {!isPending && !data?.session && <div className="flex items-center gap-4">
             <NavbarButton href="/login" as={Link} variant="secondary">Login</NavbarButton>
             <NavbarButton variant="primary">Book a call</NavbarButton>
           </div>}
-          {data?.session && <div className="flex items-center gap-4">
-            <NavbarButton href="/dashboard" as={Link} variant="secondary">Dashboard</NavbarButton>
+          {!isPending && data?.session && <div className="flex items-center gap-4">
+            {pathname === "/" && <NavbarButton href="/dashboard" as={Link} variant="secondary">Dashboard</NavbarButton>}
             <NavbarButton  onClick={async()=>{  await authClient.signOut() }} variant="primary">Logout</NavbarButton>
           </div>
           }
@@ -66,32 +81,61 @@ export function Header() {
             isOpen={isMobileMenuOpen}
             onClose={() => setIsMobileMenuOpen(false)}
           >
-            {navItems.map((item, idx) => (
-              <a
-                key={`mobile-link-${idx}`}
-                href={item.link}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="relative text-neutral-600 dark:text-neutral-300"
-              >
-                <span className="block">{item.name}</span>
-              </a>
-            ))}
-            <div className="flex w-full flex-col gap-4">
-              <NavbarButton
-                onClick={() => setIsMobileMenuOpen(false)}
-                variant="primary"
-                className="w-full"
-              >
-                Login
-              </NavbarButton>
-              <NavbarButton
-                onClick={() => setIsMobileMenuOpen(false)}
-                variant="primary"
-                className="w-full"
-              >
-                Book a call
-              </NavbarButton>
-            </div>
+            {pathname === "/" ? (
+              <>
+                {navItems.map((item, idx) => (
+                  <Link
+                    key={`mobile-link-${idx}`}
+                    href={item.link}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="relative text-neutral-600 dark:text-neutral-300"
+                  >
+                    <span className="block">{item.name}</span>
+                  </Link>
+                ))}
+                <div className="flex w-full flex-col gap-4">
+                  <NavbarButton
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    variant="primary"
+                    className="w-full"
+                  >
+                    Login
+                  </NavbarButton>
+                  <NavbarButton
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    variant="primary"
+                    className="w-full"
+                  >
+                    Book a call
+                  </NavbarButton>
+                </div>
+              </>
+            ) : (
+              <>
+                {dashboardNavItems.map((item, idx) => (
+                  <Link
+                    key={`mobile-link-${idx}`}
+                    href={item.link}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="relative text-neutral-600 dark:text-neutral-300"
+                  >
+                    <span className="block">{item.name}</span>
+                  </Link>
+                ))}
+                <div className="flex w-full flex-col gap-4">
+                  <NavbarButton
+                    onClick={async () => {
+                      await authClient.signOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    variant="primary"
+                    className="w-full"
+                  >
+                    Logout
+                  </NavbarButton>
+                </div>
+              </>
+            )}
           </MobileNavMenu>
         </MobileNav>
       </Navbar>

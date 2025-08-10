@@ -6,8 +6,8 @@ import HeroDemo from './hero-demo'
 
 function Hero() {
   return (
-    <div className='flex flex-col max-w-sm md:max-w-2xl lg:max-w-5xl mx-auto justify-between gap-5 items-center light:bg-muted dark:bg-background py-10 '>
-    <div className='mt-20'>
+    <div className='flex flex-col max-w-sm md:max-w-2xl lg:max-w-5xl mx-auto justify-between gap-5 items-center light:bg-muted dark:bg-background py-5 '>
+    <div className=''>
       <h1 className='text-3xl text-center md:text-7xl font-bold tracking-tight bg-gradient-to-b from-foreground to-muted-foreground bg-clip-text text-transparent'>
         Transcode. Stream. Scale.
       </h1>
