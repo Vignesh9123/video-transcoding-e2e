@@ -7,7 +7,7 @@ import streamRoutes from './stream.routes'
 const router = express.Router()
 
 router.use('/video', videoRouter);
-router.use('/auth', authRouter);
+// router.use('/auth', authRouter); // TODO: remove 
 router.use('/org', orgRoutes);
 router.use('/stream', streamRoutes);
 

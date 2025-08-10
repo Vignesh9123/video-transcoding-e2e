@@ -15,7 +15,8 @@ export const config = {
     FIREBASE_PROJECT_ID: String(process.env.FIREBASE_PROJECT_ID || ''),
 }
 
-export const prisma = new PrismaClient().$extends(withAccelerate())
+export const prisma = new PrismaClient()
+//.$extends(withAccelerate()) // TODO: Uncomment this line when merging to main
 
 export const prisma10MinsTTL = {
     ttl: 60
