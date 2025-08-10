@@ -55,6 +55,17 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
       error:"Failed to fetch video URL"
     });
   }
+  const handleTest = async() => {
+    const promise = axiosClient.get(`/api/video/get-video-url/${video.id}`)
+    .then(({data})=>{
+      window.open(`https://hlsjs.video-dev.org/demo/?src=${encodeURIComponent(data.data)}`, "_blank");
+    })
+    toast.promise(promise,{
+      loading: "Opening test video",
+      success:"Test video opened in new tab",
+      error:"Failed to open test video"
+    });
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -194,6 +205,8 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
               {video.status === "COMPLETED" && (
                 <>
                   <DropdownMenuItem onClick={handleShare}>Copy Link</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleTest}>Test in HLS Player</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}

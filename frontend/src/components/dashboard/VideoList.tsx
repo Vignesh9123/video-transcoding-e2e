@@ -24,37 +24,6 @@ const VideoList = () => {
   const {user} = useAuth();
   const [socket , setSocket] = useState<WebSocket | null>(null);
   const [subscribedVideos, setSubscribedVideos] = useState<string[]>([]);
-  // const getVideoStatuses = useCallback(async () => {
-  //   const videoIds = videos
-  //     .filter((vid) => vid.status === "TRANSCODING" || vid.status === "PENDING" || vid.status === "UPLOADING")
-  //     .map((vid) => vid.id);
-    
-  //   console.log("Getting video statuses for", videoIds);
-
-  //   if (videoIds.length === 0) return;
-
-  //   try {
-  //     const { data } = await axiosClient.post('/api/video/get-video-status/bulk', { videoIds });
-  //     const responseData: {
-  //       status: VideoStatus;
-  //       progress: number;
-  //       videoId: string;
-  //     }[] = data.data;
-
-  //     setVideos((prevVideos) =>
-  //       prevVideos.map((video) => {
-  //         const updated = responseData.find((v) => v.videoId === video.id);
-  //         if (updated) {
-  //           return { ...video, status: updated.status, progress: updated.progress };
-  //         } else {
-  //           return video;
-  //         }
-  //       })
-  //     );
-  //   } catch (error) {
-  //     console.error("Failed to update video statuses", error);
-  //   }
-  // }, [videos]); // Dependency on videos
 
 
   const deleteVideo = (videoId: string) => {
@@ -141,12 +110,7 @@ const VideoList = () => {
     else setFilteredVideos(videos.filter((video) => video.name.toLowerCase().includes(searchQuery.toLowerCase())));
   }, [searchQuery]);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     getVideoStatuses();
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, [getVideoStatuses]); 
+ 
   useEffect(() => {
     setFilteredVideos(
       videos.filter((video) => activeFilter === "all" || video.status === activeFilter)
