@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser'
 import { config } from './config'
 import dotenv from 'dotenv'
 import { auth } from './lib/auth'
-import {fromNodeHeaders, toNodeHandler} from 'better-auth/node'
+import { toNodeHandler} from 'better-auth/node'
 const app = express()
 app.set('trust proxy', true)
 dotenv.config()
