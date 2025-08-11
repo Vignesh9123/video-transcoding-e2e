@@ -17,7 +17,7 @@ async function LoginPage() {
       },
       onSuccess: (res) => {
         if(res.data?.session) {
-          return redirect('/')
+          return redirect('/dashboard')
         }
       }
     }

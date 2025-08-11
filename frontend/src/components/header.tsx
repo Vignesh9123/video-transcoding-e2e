@@ -13,7 +13,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 export function Header() {
   const navItems = [
     {
@@ -53,16 +53,16 @@ export function Header() {
           <NavbarLogo />
           {pathname === "/" && <NavItems items={navItems} />}
           {(pathname === "/dashboard" || pathname === "/upload") && data?.session && <NavItems items={dashboardNavItems} />}
-          {
-            isPending && <NavItems items={[{name: "Loading...", link: "#"}]} />
-          }
           {!isPending && !data?.session && <div className="flex items-center gap-4">
             <NavbarButton href="/login" as={Link} variant="secondary">Login</NavbarButton>
             <NavbarButton variant="primary">Book a call</NavbarButton>
           </div>}
           {!isPending && data?.session && <div className="flex items-center gap-4">
             {pathname === "/" && <NavbarButton href="/dashboard" as={Link} variant="secondary">Dashboard</NavbarButton>}
-            <NavbarButton  onClick={async()=>{  await authClient.signOut() }} variant="primary">Logout</NavbarButton>
+            <NavbarButton  onClick={async()=>{ 
+               await authClient.signOut()
+               redirect('/login') 
+              }} variant="primary">Logout</NavbarButton>
           </div>
           }
         </NavBody>
