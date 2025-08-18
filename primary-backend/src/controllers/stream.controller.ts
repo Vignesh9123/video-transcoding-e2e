@@ -10,11 +10,15 @@ export const stream = async(req: Request, res: Response)=>{
         if(!decoded) throw new Error("Unauthorized");
         const {videoId, userId}:{videoId: string, userId: string} = decoded as {videoId: string, userId: string}
         if(!videoId || !userId) throw new Error("Unauthorized");
-        const video = await prisma.video.findUnique({where:{id:videoId}, include:{User:true, Organization:true}, cacheStrategy: prisma10MinsTTL})
+        const video = await prisma.video.findUnique({where:{id:videoId}, include:{User:true, Organization:true}, 
+            // cacheStrategy: prisma10MinsTTL
+        })
         if(!video) throw new Error("Unauthorized");
         if(!video.url) throw new Error("Not Available");
         if(video.status !== "COMPLETED") throw new Error("Not Available");
-        const user = await prisma.user.findUnique({where:{id:userId}, include:{Organization:true}, cacheStrategy: prisma10MinsTTL})
+        const user = await prisma.user.findUnique({where:{id:userId}, include:{Organization:true},
+            //  cacheStrategy: prisma10MinsTTL
+            })
         if(user?.roleInOrg == "OWNER"){
             if(user.organization !== video.organization) throw new Error("Unauthorized");
            

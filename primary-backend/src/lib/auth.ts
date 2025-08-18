@@ -7,6 +7,7 @@ export const auth = betterAuth({
     provider:"postgresql",
   }),
   plugins: [oneTap()],
+  trustedOrigins: ['http://localhost:3000', 'http://localhost:8080'],
   socialProviders: {
     google: {
       clientId: String(process.env.GOOGLE_CLIENT_ID || ''),
