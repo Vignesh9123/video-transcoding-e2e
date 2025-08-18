@@ -2,9 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
-import axios from 'axios';
 import { axiosClient } from '@/config/axiosConfig';
-
+import { authClient } from '@/lib/auth-client';
 interface AuthUser {
   id: string;
   email: string;
@@ -18,7 +17,7 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (idtoken: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
 }
 
@@ -32,61 +31,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getUser = async () => {
     try {
-      const response = await axiosClient.get("/api/auth/current-user");
+      const response = await axiosClient.get("/api/user/current-user");
+      console.log('response from user', response.data);
       setUser(response.data.user);
       localStorage.setItem("token", response.data.token);
       console.log("User with data fetched", response.data.user)
     } catch (error) {
-        setUser(null);
-        localStorage.removeItem("token");
+      setUser(null);
+      localStorage.removeItem("token");
     }
-    finally{
+    finally {
       setIsLoading(false);
-  }
+    }
   }
   useEffect(() => {
     setIsLoading(true);
     getUser();
   }, []);
 
-  useEffect(()=>{
-    if(user){
-      if(!user.organization){
+  useEffect(() => {
+    if (user) {
+      if (!user.organization) {
         navigate("/create-org")
       }
     }
   }, [user])
-  const login = async (idtoken: string): Promise<void> => {
+  const login = async (): Promise<void> => {
     setIsLoading(true);
     try {
-      const userData = {
-        idtoken
-      };
-      const signInPromise = axiosClient
-        .post(
-          "/api/auth/google-login",
-          userData
-        )
-        .then((response) => {
-          localStorage.setItem("token", response.data.token);
-          setUser(response.data.user);
-          if(!response.data.user.organization){
-            navigate("/create-org")
+      const signInPromise = new Promise((resolve, reject) => authClient.signIn.social({
+        provider: 'google',
+        callbackURL: 'http://localhost:8080/dashboard',
+        fetchOptions:{
+          onResponse: (response) => {
+            console.log('response', response);
+            if(response.response.ok){
+              resolve(response);
+            }
+          },
+          onError: (error) => {
+            console.log('error', error);
+            reject(error);
           }
-          else{
-            navigate("/dashboard")
-          }
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-
+        }
+      })).finally(() => setIsLoading(false));
       toast.promise(signInPromise, {
         loading: "Signing in...",
-        success: "Signed in successfully!",
+        success: "Redirecting...",
         error: "Failed to sign in. Please try again.",
       });
-
     } catch (error) {
       if (error.status === 429) {
         toast.error("Too Many Requests - please try again later");
@@ -102,11 +95,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await axiosClient.get("/api/auth/logout")
-    setUser(null);
-    localStorage.removeItem("token");
-    toast.success("Logged out successfully.");
-    navigate('/');
+      await authClient.signOut();
+      setUser(null);
+      localStorage.removeItem("token");
+      toast.success("Logged out successfully.");
+      navigate('/');
     } catch (error) {
       toast.error("Failed to log out. Please try again.");
     }
