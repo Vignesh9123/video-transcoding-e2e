@@ -132,7 +132,7 @@ const Footer = () => {
           </p>
           <div className="mt-4 md:mt-0">
             <p className="text-sm text-muted-foreground">
-              Made with 💙 for video creators
+              Made with 💙 by <Link to="https://dub.sh/vignesh-portfolio" target="_blank">Vignesh</Link>
             </p>
           </div>
         </div>
