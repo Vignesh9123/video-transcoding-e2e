@@ -16,7 +16,7 @@ export const config = {
 }
 
 export const prisma = new PrismaClient()
-// .$extends(withAccelerate()) // TODO: Uncomment this line when merging to main
+.$extends(withAccelerate())
 
 export const prisma10MinsTTL = {
     ttl: 60

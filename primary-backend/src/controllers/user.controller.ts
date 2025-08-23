@@ -8,7 +8,7 @@ export const currentUser = async(req: Request, res: Response) => {
         const userId = (await auth.api.getSession({ headers: fromNodeHeaders(req.headers) }))?.user?.id
         if(!userId) throw new Error("Unauthorized");
         const user = await prisma.user.findUnique({ where: { id: userId } 
-            // , cacheStrategy: prisma10MinsTTL
+            , cacheStrategy: prisma10MinsTTL
         });
         if(!user) throw new Error("Error while fetching user");
         const token = generateToken({id:user.id});
