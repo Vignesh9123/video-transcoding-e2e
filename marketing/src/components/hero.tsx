@@ -3,6 +3,7 @@ import HeroImage from './hero-image'
 import { GlowingEffect } from './ui/glowing-effect'
 import Link from 'next/link'
 import HeroDemo from './hero-demo'
+import { NEXT_PUBLIC_MAIN_APP_URL } from '@/config'
 
 function Hero() {
   return (
@@ -29,7 +30,7 @@ function Hero() {
           variant='white'
         />
         <Link
-          href="/"
+          href={`${NEXT_PUBLIC_MAIN_APP_URL}/login`}
           className="block p-4 h-full bg-gradient-to-b from-foreground via-foreground to-muted-foreground rounded-md text-background shadow-sky-500 shadow-md/30 hover:shadow-lg hover:shadow-sky-500/40 hover:translate-y-[-2px] transition-all duration-200 ease-in-out active:translate-y-px text-center"
         >
           Get Started

@@ -14,6 +14,7 @@ import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
 import { useState } from "react";
 import { redirect, usePathname } from "next/navigation";
+import { NEXT_PUBLIC_MAIN_APP_URL } from "@/config";
 export function Header() {
   const navItems = [
     {
@@ -48,21 +49,15 @@ export function Header() {
   return (
     <div className="relative w-full">
       <Navbar>
-        {/* Desktop Navigation */}
         <NavBody>
           <NavbarLogo />
           {pathname === "/" && <NavItems items={navItems} />}
           {(pathname === "/dashboard" || pathname === "/upload") && data?.session && <NavItems items={dashboardNavItems} />}
           {!isPending && !data?.session && <div className="flex items-center gap-4">
-            <NavbarButton href="/login" as={Link} variant="secondary">Login</NavbarButton>
-            <NavbarButton variant="primary">Book a call</NavbarButton>
+            <NavbarButton  href={`${NEXT_PUBLIC_MAIN_APP_URL}/login`} as={Link}>Login</NavbarButton>
           </div>}
           {!isPending && data?.session && <div className="flex items-center gap-4">
-            {pathname === "/" && <NavbarButton href="/dashboard" as={Link} variant="secondary">Dashboard</NavbarButton>}
-            <NavbarButton  onClick={async()=>{ 
-               await authClient.signOut()
-               redirect('/login') 
-              }} variant="primary">Logout</NavbarButton>
+            <NavbarButton href={`${NEXT_PUBLIC_MAIN_APP_URL}/dashboard`} as={Link}>Dashboard</NavbarButton>
           </div>
           }
         </NavBody>
