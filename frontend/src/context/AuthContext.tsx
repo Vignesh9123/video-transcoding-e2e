@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       localStorage.removeItem("token");
       toast.success("Logged out successfully.");
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       toast.error("Failed to log out. Please try again.");
     }

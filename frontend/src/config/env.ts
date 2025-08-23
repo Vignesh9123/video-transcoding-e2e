@@ -1,0 +1,1 @@
+export const MARKETING_APP_URL=String(import.meta.env.VITE_MARKETING_APP_URL || 'http://localhost:3000');
