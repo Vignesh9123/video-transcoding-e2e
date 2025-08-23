@@ -14,42 +14,48 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  loginType String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Videos Video[]
-  organization String?
-  Organization Organization? @relation(fields: [organization], references: [id])
-  roleInOrg Role @default(VIEWER)
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  loginType     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  Videos        Video[]
+  organization  String?
+  Organization  Organization? @relation(fields: [organization], references: [id])
+  roleInOrg     Role          @default(VIEWER)
+  emailVerified Boolean
+  image         String?
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
 }
 
 model Video {
-  id        String      @id @default(cuid())
-  name      String
-  status    VideoStatus @default(UPLOADING)
-  variants  String[] @default(["360p", "480p", "720p"])
-  progress  Float       @default(0)
-  url       String?
-  userId String
-  User User @relation(fields: [userId], references: [id])
-  organization String 
+  id           String       @id @default(cuid())
+  name         String
+  status       VideoStatus  @default(UPLOADING)
+  variants     String[]     @default(["360p", "480p", "720p"])
+  progress     Float        @default(0)
+  url          String?
+  userId       String
+  User         User         @relation(fields: [userId], references: [id])
+  organization String
   Organization Organization @relation(fields: [organization], references: [id])
-  retryCount Int @default(0)
-  isPublic Boolean @default(false)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  retryCount   Int          @default(0)
+  isPublic     Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
-model Organization{
-  id String @id @default(cuid())
-  name String
-  users User[]
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  users     User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  videos Video[]
+  videos    Video[]
 }
 
 enum Role {
@@ -64,4 +70,49 @@ enum VideoStatus {
   TRANSCODING
   COMPLETED
   FAILED
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
 }

@@ -3,6 +3,8 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { config } from './config'
 import dotenv from 'dotenv'
+import { auth } from './lib/auth'
+import { toNodeHandler} from 'better-auth/node'
 const app = express()
 import { rateLimit } from 'express-rate-limit'
 
@@ -21,10 +23,11 @@ dotenv.config()
 
 app.use(cors(
     {
-        origin: ['http://localhost:8080', 'https://hlsjs.video-dev.org', 'https://livepush.io', 'https://video-transcoding-e2e.vercel.app'],
+        origin: ['http://localhost:8080', 'https://hlsjs.video-dev.org', 'https://livepush.io', 'https://video-transcoding-e2e.vercel.app', 'http://localhost:3000'],
         credentials: true,
     }
 ))
+app.all("/api/auth/*splat", toNodeHandler(auth)); 
 app.use(cookieParser())
 app.use(express.json())
 app.use(limiter)

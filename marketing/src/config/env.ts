@@ -1,0 +1,1 @@
+export const NEXT_PUBLIC_MAIN_APP_URL=String(process.env.NEXT_PUBLIC_MAIN_APP_URL || 'http://localhost:8080');

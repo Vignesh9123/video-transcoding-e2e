@@ -1,24 +1,16 @@
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "@/firebase";
-
 const LoginForm = () => {
   const { login, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        const idtoken = await user.getIdToken();
-        await login(idtoken);
-      } catch (error) {
-        console.log(error); 
-      }
-
+    try {
+      await login();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
 

@@ -1,8 +1,8 @@
 export interface User{
     id: string
-    username: string
-    email: string
-    password: string
+    username?: string
+    email?: string
+    password?: string
 }
 
 declare global {

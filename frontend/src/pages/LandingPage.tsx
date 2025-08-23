@@ -1,53 +1,28 @@
+import { MARKETING_APP_URL } from "@/config";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react"
+import { useNavigate } from "react-router-dom";
 
-import { HeroSection } from "@/components/hero-section-5";
-const LandingPage = () => {
+
+function App(){
+  const {isLoading, isAuthenticated, user} = useAuth()
+  const navigate = useNavigate()
+  useEffect(() => {
+    if(isLoading) return
+    if(!isAuthenticated){
+      window.location.href = MARKETING_APP_URL
+      return
+    }
+    if(user && !user.organization){
+      navigate("/create-org")
+      return
+    }
+    navigate("/dashboard")
+    
+  }, [isLoading, isAuthenticated])
   return (
-    <div>
-    <HeroSection/>
-    <FeatureStepsDemo/>
-    </div>
-  );
-};
-
-export default LandingPage;
-
-import { FeatureSteps } from "@/components/feature-section"
-
-const features = [
-  {
-    step: 'Step 1',
-    title: 'Upload Instantly',
-    content: 'Drag and drop your raw video — we take it from here. Secure, fast, and cloud-native.',
-    darkImage: '/features/1.png',
-    lightImage: '/features/1-light.png'
-  },
-  {
-    step: 'Step 2',
-    title: 'Auto-Transcode in the Cloud',
-    content: 'Your video is compressed, converted into multiple resolutions, and HLS-ready — all on autopilot.',
-    darkImage: '/features/2.png',
-    lightImage: '/features/2-light.png'
-  },
-  {
-    step: 'Step 3',
-    title: 'Stream Anywhere',
-    content: 'Adaptive streaming with broad compatibility. Seamless playback across any device, any network.',
-    darkImage: '/features/3.png',
-    lightImage: '/features/3-light.png'
-  },
-]
-
-
-export function FeatureStepsDemo() {
-  return (
-    <div className=" mx-auto px-4 py-8 flex-grow bg-gray-200 dark:bg-gray-950 rounded-xl">
-
-      <FeatureSteps 
-        features={features}
-        title="From Upload to Playback"
-        autoPlayInterval={4000}
-        imageHeight="h-[500px]"
-        />
-        </div>
+    <div className="min-h-screen"></div>
   )
 }
+
+export default App

@@ -24,13 +24,19 @@ export const admitToOrg = async (req: Request, res: Response) => {
     try {
         const { email, role } = req.body;
         if (!email) throw new Error("Missing required fields");
-        const user = await prisma.user.findUnique({ where: { id: req.user.id } , cacheStrategy: prisma10MinsTTL});
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } ,
+             cacheStrategy: prisma10MinsTTL
+            });
         if (!user) throw new Error("User not found");
         if(!user.organization) throw new Error("User is not part of any organization");
-        const org = await prisma.organization.findUnique({ where: { id: user.organization } , cacheStrategy: prisma10MinsTTL});
+        const org = await prisma.organization.findUnique({ where: { id: user.organization } , 
+            cacheStrategy: prisma10MinsTTL
+        });
         if (!org) throw new Error("Organization not found");
         if(user.roleInOrg !== "OWNER") throw new Error("User is not an owner of the organization");
-        const userToAdmit = await prisma.user.findUnique({ where: { email } , cacheStrategy: prisma10MinsTTL});
+        const userToAdmit = await prisma.user.findUnique({ where: { email } , 
+            cacheStrategy: prisma10MinsTTL
+        });
         if (!userToAdmit) throw new Error("User not found");
         await prisma.user.update({
             where: { id: userToAdmit.id },
@@ -56,7 +62,9 @@ export const getOrganizationData = async (req: Request, res: Response) => {
                     users: true
                 }
             }
-        } , cacheStrategy: prisma10MinsTTL});
+        } , 
+        cacheStrategy: prisma10MinsTTL
+    });
         if (!org) throw new Error("Organization not found");
         res.status(200).json({ ...org, userCount: org._count.users });
         return
@@ -74,11 +82,15 @@ export const getOrganizationMembers = async(req: Request, res: Response)=>{
         const orgId = req.params.orgId;
         const userId = req.user.id;
         if(!userId) throw new Error("Unauthorized");
-        const user = await prisma.user.findUnique({ where: { id: userId } , cacheStrategy: prisma10MinsTTL});
+        const user = await prisma.user.findUnique({ where: { id: userId } ,
+             cacheStrategy: prisma10MinsTTL
+            });
         if (!user) throw new Error("User not found");
         if(user.roleInOrg !== "OWNER") throw new Error("Unauthorized");
         if(!orgId) throw new Error("Missing required fields");
-        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{users:true}, cacheStrategy: prisma10MinsTTL});
+        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{users:true}, 
+            cacheStrategy: prisma10MinsTTL
+        });
         if (!org) throw new Error("Organization not found");
         res.status(200).json({ users: org.users });
         return
@@ -105,10 +117,14 @@ export const removeFromOrg = async(req: Request, res: Response)=>{
         if (!attemptingUser) throw new Error("User not found");
         if(attemptingUser.roleInOrg !== "OWNER") throw new Error("Unauthorized");
         if(!userId) throw new Error("Missing required fields");
-        const user = await prisma.user.findUnique({ where: { id: userId } , cacheStrategy: prisma10MinsTTL});
+        const user = await prisma.user.findUnique({ where: { id: userId } ,
+             cacheStrategy: prisma10MinsTTL
+            });
         if (!user) throw new Error("User not found");
         if(!orgId) throw new Error("Missing required fields");
-        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{users:true}, cacheStrategy: prisma10MinsTTL});
+        const org = await prisma.organization.findUnique({ where: { id: orgId }, include:{users:true}, 
+            cacheStrategy: prisma10MinsTTL
+        });
         if (!org) throw new Error("Organization not found");
         if(user.organization !== orgId) throw new Error("Unauthorized");
         await prisma.user.update({ where: { id: userId }, data: { organization: null } });
@@ -133,14 +149,19 @@ export const updateRole = async(req: Request, res: Response)=>{
                 { organization: orgId },
               ],
             },
-          cacheStrategy: prisma10MinsTTL});
+          cacheStrategy: prisma10MinsTTL
+        });
         if (!attemptingUser) throw new Error("User not found");
         if(attemptingUser.roleInOrg !== "OWNER") throw new Error("Unauthorized");
         if(!userId) throw new Error("Missing required fields");
-        const user = await prisma.user.findUnique({ where: { id: userId }, cacheStrategy: prisma10MinsTTL});
+        const user = await prisma.user.findUnique({ where: { id: userId }, 
+            cacheStrategy: prisma10MinsTTL
+        });
         if (!user) throw new Error("User not found");
         if(!orgId) throw new Error("Missing required fields");
-        const org = await prisma.organization.findUnique({ where: { id: orgId }, cacheStrategy: prisma10MinsTTL});
+        const org = await prisma.organization.findUnique({ where: { id: orgId },
+             cacheStrategy: prisma10MinsTTL
+            });
         if (!org) throw new Error("Organization not found");
         if(user.organization !== orgId) throw new Error("Unauthorized");
         await prisma.user.update({ where: { id: userId }, data: { roleInOrg: role } });

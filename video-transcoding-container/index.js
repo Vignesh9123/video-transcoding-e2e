@@ -38,7 +38,7 @@ async function sendFailedVideotoQueue(){
       id: process.env.KEY
     }
   })
-  if(!dbVideo) return
+  if(!dbVideo) throw new Error('Video not found')
   if(dbVideo.retryCount >= MAX_RETRIES) return
   const messageBody = JSON.stringify({
     type: "fromContainer",
