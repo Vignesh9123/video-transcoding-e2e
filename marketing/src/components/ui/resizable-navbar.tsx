@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import React, { useRef, useState } from "react";
+import { Badge } from "./badge";
 
 
 interface NavbarProps {
@@ -244,6 +245,7 @@ export const NavbarLogo = () => {
         height={30}
       />
       <span className="font-medium text-black dark:text-white">StreamForge</span>
+      <Badge>In Development</Badge>
     </Link>
   );
 };

@@ -48,7 +48,6 @@ export function Header() {
           }
         </NavBody>
 
-        {/* Mobile Navigation */}
         <MobileNav>
           <MobileNavHeader>
             <NavbarLogo />
