@@ -1,4 +1,4 @@
-import { MoveRight, PhoneCall } from "lucide-react";
+import { MoveRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -15,7 +15,7 @@ function CTA() {
             Start transcoding now
             </h3>
             <p className="text-lg leading-relaxed tracking-tight text-muted-foreground max-w-xl">
-            Video processing shouldn't be complicated. Skip the complex setup and expensive infrastructure. Our cloud-native platform transforms your videos into streaming-ready content in minutes, not hours. From upload to adaptive playback - we handle the entire pipeline so you can focus on your content.
+            Video processing shouldn&apos;t be complicated. Skip the complex setup and expensive infrastructure. Our cloud-native platform transforms your videos into streaming-ready content in minutes, not hours. From upload to adaptive playback - we handle the entire pipeline so you can focus on your content.
             </p>
           </div>
           <div className="flex flex-row gap-4 relative ">
