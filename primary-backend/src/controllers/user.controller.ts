@@ -6,7 +6,6 @@ import { generateToken } from "../utils";
 export const currentUser = async(req: Request, res: Response) => {
     try{
         const userId = (await auth.api.getSession({ headers: fromNodeHeaders(req.headers) }))?.user?.id
-        console.log(userId);
         if(!userId) throw new Error("Unauthorized");
         const user = await prisma.user.findUnique({ where: { id: userId } 
             // , cacheStrategy: prisma10MinsTTL
