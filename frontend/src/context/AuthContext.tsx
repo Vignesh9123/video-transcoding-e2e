@@ -17,7 +17,7 @@ interface AuthContextType {
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: () => Promise<void>;
+  login: (nextPath?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -56,12 +56,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }, [user])
-  const login = async (): Promise<void> => {
+  const login = async (nextPath?: string): Promise<void> => {
     setIsLoading(true);
+    console.log('nextPath', nextPath);
+    const redirectUrl = nextPath ? `http://localhost:8080${nextPath}` : 'http://localhost:8080/dashboard';
+    console.log('redirectUrl', redirectUrl);
     try {
       const signInPromise = new Promise((resolve, reject) => authClient.signIn.social({
         provider: 'google',
-        callbackURL: 'http://localhost:8080/dashboard',
+        callbackURL: redirectUrl,
         fetchOptions:{
           onResponse: (response) => {
             console.log('response', response);

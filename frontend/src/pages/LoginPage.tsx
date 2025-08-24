@@ -1,6 +1,6 @@
 
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -10,14 +10,16 @@ const LoginPage = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const {pathname} = useLocation()
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (isAuthenticated) {
       if (user && user.organization && pathname == "/login") {
-        navigate("/dashboard");
+        const redirectPath = searchParams.get("redirect") || "/dashboard";
+        navigate(redirectPath, { replace: true });
       }
       else {
-        navigate("/create-org");
+        navigate("/create-org?redirect=" + encodeURIComponent(pathname), { replace: true });
       }
     }
   }, [isAuthenticated, navigate, pathname]);

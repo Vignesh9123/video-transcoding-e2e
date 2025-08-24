@@ -1,13 +1,17 @@
 import { useAuth } from "@/context/AuthContext";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 const LoginForm = () => {
   const { login, isLoading } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login();
+      const redirectParam = searchParams.get("redirect")?.trim()
+      const nextPath = redirectParam?.length > 0 ? redirectParam : undefined;
+      await login(nextPath);
     } catch (error) {
       console.log(error);
     }

@@ -1,9 +1,9 @@
-import React, { Suspense } from 'react'
+import React from 'react'
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route,  useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -24,6 +24,7 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading , user} = useAuth();
+  const location = useLocation();
   const navigate = useNavigate()
   if (isLoading) {
     return (
@@ -34,12 +35,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    navigate("/login");
+    navigate("/login?redirect=" + encodeURIComponent(location.pathname));
     return null
   }
 
   if (user && !user.organization) {
-    navigate("/create-org");
+    navigate("/create-org?redirect=" + encodeURIComponent(location.pathname));
     return null
   }
 
