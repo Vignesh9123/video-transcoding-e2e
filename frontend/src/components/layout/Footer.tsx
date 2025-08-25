@@ -33,7 +33,6 @@ const Footer = () => {
       
       <div className="container mx-auto px-4 pt-12 pb-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-          {/* Logo & About */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2 mb-4">
               <svg

@@ -13,6 +13,8 @@ export const config = {
     S3_UPLOAD_BUCKET_NAME: String(process.env.S3_UPLOAD_BUCKET_NAME || ''),
     VideoStatusEnum: VideoStatus,
     FIREBASE_PROJECT_ID: String(process.env.FIREBASE_PROJECT_ID || ''),
+    TRUSTED_ORIGINS: JSON.parse(String(process.env.TRUSTED_ORIGINS || '[]')),
+    API_URL: String(process.env.API_URL || 'http://localhost:4000'),
 }
 
 export const prisma = new PrismaClient()
