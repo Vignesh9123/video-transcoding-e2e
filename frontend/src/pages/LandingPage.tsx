@@ -1,4 +1,3 @@
-import { MARKETING_APP_URL } from "@/config";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react"
 import { useNavigate } from "react-router-dom";
@@ -10,8 +9,7 @@ function App(){
   useEffect(() => {
     if(isLoading) return
     if(!isAuthenticated){
-      window.location.href = MARKETING_APP_URL
-      return
+      navigate("/login")
     }
     if(user && !user.organization){
       navigate("/create-org")

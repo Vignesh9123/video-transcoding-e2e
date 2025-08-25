@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "sonner";
 import { axiosClient } from '@/config/axiosConfig';
 import { authClient } from '@/lib/auth-client';
+import { MAIN_APP_URL } from '@/config';
 interface AuthUser {
   id: string;
   email: string;
@@ -59,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (nextPath?: string): Promise<void> => {
     setIsLoading(true);
     console.log('nextPath', nextPath);
-    const redirectUrl = nextPath ? `http://localhost:8080${nextPath}` : 'http://localhost:8080/dashboard';
+    const redirectUrl = nextPath ? `${MAIN_APP_URL}/${nextPath}` : `${MAIN_APP_URL}/dashboard`;
     console.log('redirectUrl', redirectUrl);
     try {
       const signInPromise = new Promise((resolve, reject) => authClient.signIn.social({
