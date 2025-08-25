@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (nextPath?: string): Promise<void> => {
     setIsLoading(true);
     console.log('nextPath', nextPath);
-    const redirectUrl = nextPath ? `${MAIN_APP_URL}/${nextPath}` : `${MAIN_APP_URL}/dashboard`;
+    const redirectUrl = nextPath ? `${MAIN_APP_URL}${nextPath}` : `${MAIN_APP_URL}/dashboard`;
     console.log('redirectUrl', redirectUrl);
     try {
       const signInPromise = new Promise((resolve, reject) => authClient.signIn.social({
