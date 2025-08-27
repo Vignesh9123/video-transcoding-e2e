@@ -17,11 +17,11 @@
     "dotenv": "^17.2.1",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
-    "typescript": "^5.9.2",
     "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/ws": "^8.18.1"
+    "@types/ws": "^8.18.1",
+    "typescript": "^5.9.2"
   }
 }
