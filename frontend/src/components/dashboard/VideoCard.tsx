@@ -24,6 +24,7 @@ import {toast} from '@/components/ui/sonner'
 import axios from "axios";
 import { Switch } from "../ui/switch";
 import { axiosClient } from "@/config/axiosConfig";
+import { PLAYER_APP_URL } from "@/config";
 
 interface VideoCardProps {
   video: Video;
@@ -58,7 +59,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   const handleTest = async() => {
     const promise = axiosClient.get(`/api/video/get-video-url/${video.id}`)
     .then(({data})=>{
-      window.open(`https://hlsjs.video-dev.org/demo/?src=${encodeURIComponent(data.data)}`, "_blank");
+      window.open(`http://localhost:5050/sample/${video.id}`, "_blank");
     })
     toast.promise(promise,{
       loading: "Opening test video",
@@ -113,6 +114,16 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
         description: "Please try again.",
       });
     }
+  }
+
+  const handleEmbed = async()=>{
+    const html = `<div className="max-w-[95vw] aspect-video">
+      <iframe allowFullScreen className="w-full h-full" src="${PLAYER_APP_URL}/${video.id}" width={'100%'} height={'100%'}/>
+      </div>`
+    navigator.clipboard.writeText(html);
+    toast.success("Code Copied to clipboard",{
+      description: "Please paste the copied code in your website, where you want to embed the video.",
+    });
   }
 
 
@@ -204,6 +215,8 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
               
               {video.status === "COMPLETED" && (
                 <>
+                  <DropdownMenuItem onClick={handleEmbed}>Embed Code</DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleShare}>Copy Link</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleTest}>Test in HLS Player</DropdownMenuItem>

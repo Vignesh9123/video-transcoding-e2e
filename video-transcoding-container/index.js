@@ -495,7 +495,6 @@ const acknowledgeTheQueue = async() => {
   }
 }
 
-// HLSStreaming() is the function that takes a video file from S3 and transcodes it to HLS format (break the video into smaller chunks and different resolutions) and uploads it to S3
 async function HLSStreaming() {
     try {
         const DBVideo = await prisma.video.update({
