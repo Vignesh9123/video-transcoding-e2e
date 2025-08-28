@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>HLS Test Player | StreamForge</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" src="https://cdn.jsdelivr.net/npm/media-chrome@4/+esm"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/media-chrome@4/menu/+esm"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/hls-video-element@1.1/+esm"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@mux/mux-video/+esm"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 10px 0;
+      background: linear-gradient(180deg, #0b0b10 0%, #0b0b10 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #fff;
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .branding {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      justify-content: center;
+      margin: 1rem 1rem 0.75rem;
+    }
+
+    .branding img {
+      height: 36px;
+      width: auto;
+      border-radius: 4px;
+    }
+
+    .brand-text span.title {
+      display: block;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #f3f4f6;
+      line-height: 1.25;
+    }
+
+    .brand-text small.tagline {
+      display: block;
+      margin-top: 2px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #9ca3af;
+      letter-spacing: 0.2px;
+    }
+
+    .video-container {
+      width: 100%;
+      max-height: 100%;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      max-width: 1200px;
+    }
+
+    media-controller {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+    }
+
+    .footer {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      opacity: 0.7;
+    }
+
+    :root {
+      --media-object-fit: contain;
+      --media-primary-color: #9ca3af;
+      --media-secondary-color: #9ca3af;
+      --media-accent-color: #e5e7eb;
+      --media-text-color: #e5e7eb;
+      --media-control-background: rgba(17, 17, 20, 0.72);
+      --media-control-hover-background: rgba(28, 28, 33, 0.9);
+      --media-range-track-color: rgba(255,255,255,0.18);
+      --media-range-bar-color: #e5e7eb;
+      --media-range-thumb-background: #ffffff;
+      --media-range-thumb-box-shadow: 0 1px 6px rgba(0,0,0,0.35);
+      --media-border-radius: 10px;
+    }
+
+    media-control-bar {
+      background: rgba(0,0,0,0.35);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    @media (max-width: 768px) {
+      .video-container {
+        max-width: 100%;
+        aspect-ratio: 16 / 9;
+      }
+
+      .branding img {
+        height: 28px;
+      }
+
+      .footer {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="branding">
+    <img src="https://shop.raceya.fit/wp-content/uploads/2020/11/logo-placeholder.jpg" alt="StreamForge Logo">
+    <div class="brand-text">
+      <span class="title">StreamForge</span>
+      <small class="tagline">HLS Test Player</small>
+    </div>
+  </div>
+
+
+
+    <div class="video-container">
+      <media-controller id="mc" keyboardforwardseekoffset="15" keyboardbackwardseekoffset="5">
+        <hls-video id="video" slot="media" src="{{M3U8_URL}}" stream-type="on-demand" preload="metadata" playsinline
+          crossorigin>
+          <!-- <track default kind="metadata" label="thumbnails"
+            src="https://image.mux.com/Sc89iWAyNkhJ3P1rQ02nrEdCFTnfT01CZ2KmaEcxXfB008/storyboard.vtt">
+          <track default kind="chapters"
+            src="https://media-chrome.mux.dev/examples/vanilla/vtt/elephantsdream/chapters.vtt"> -->
+        </hls-video>
+
+        <img slot="poster" srcset="
+          https://placehold.co/640x360/000000/FFFFFF/png?text=Streamforge 640w,
+          https://placehold.co/960x540/000000/FFFFFF/png?text=Streamforge 960w,
+          https://placehold.co/1280x720/000000/FFFFFF/png?text=Streamforge 1280w,
+          https://placehold.co/1920x1080/000000/FFFFFF/png?text=Streamforge 1920w
+          " alt="StreamForge" decoding="async">
+
+        <media-loading-indicator slot="centered-chrome" noautohide></media-loading-indicator>
+        <media-error-dialog slot="dialog"></media-error-dialog>
+
+        <!-- Settings menu -->
+        <media-settings-menu anchor="auto" hidden>
+          <media-settings-menu-item>
+            Speed
+            <media-playback-rate-menu slot="submenu" hidden>
+              <div slot="title">Speed</div>
+            </media-playback-rate-menu>
+          </media-settings-menu-item>
+          <media-settings-menu-item>
+            Quality
+            <media-rendition-menu slot="submenu" hidden>
+              <div slot="title">Quality</div>
+            </media-rendition-menu>
+          </media-settings-menu-item>
+          <media-settings-menu-item>
+            Captions
+            <media-captions-menu slot="submenu" hidden>
+              <div slot="title">Captions</div>
+            </media-captions-menu>
+          </media-settings-menu-item>
+          <media-settings-menu-item>
+            Audio
+            <media-audio-track-menu slot="submenu" hidden>
+              <div slot="title">Audio</div>
+            </media-audio-track-menu>
+          </media-settings-menu-item>
+        </media-settings-menu>
+
+        <media-control-bar>
+          <media-play-button></media-play-button>
+          <media-seek-backward-button seekoffset="5"></media-seek-backward-button>
+          <media-seek-forward-button seekoffset="15"></media-seek-forward-button>
+          <media-mute-button></media-mute-button>
+          <media-time-display></media-time-display>
+          <media-time-range></media-time-range>
+          <media-duration-display></media-duration-display>
+          <media-settings-menu-button></media-settings-menu-button>
+          <media-fullscreen-button></media-fullscreen-button>
+        </media-control-bar>
+      </media-controller>
+    </div>
+    <div class="footer">Transcoded by <a href="{{MAIN_APP_URL}}">StreamForge</a></div>
+</body>
+
+</html>

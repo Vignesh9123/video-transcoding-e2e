@@ -1,0 +1,24 @@
+import express from 'express'
+import { env } from './config'
+import fs from 'fs/promises'
+import path from 'path'
+
+const app = express()
+
+app.get('/:videoId', async(req, res) => {
+    const {videoId} = req.params
+    const fc = await fs.readFile(path.join(__dirname, 'files', 'player.html'))
+    const dynamicfc = fc.toString().replace("{{M3U8_URL}}", `${env.BUCKET_URL}/${videoId}/master.m3u8`)
+    res.contentType('html')
+    res.send(dynamicfc)
+})
+app.get('/sample/:videoId', async(req, res) => {
+    const { videoId } = req.params
+    const fc = await fs.readFile(path.join(__dirname, 'files', 'player-sample.html'))
+    const dynamicfc = fc.toString().replace("{{M3U8_URL}}", `https://video-transcode-9123-outputs.s3.ap-south-1.amazonaws.com/${videoId}/master.m3u8`)
+    res.contentType('html')
+    res.send(dynamicfc)
+})
+app.listen(env.PORT, ()=>{
+    console.log(`Server is running on port ${env.PORT}`)
+})
