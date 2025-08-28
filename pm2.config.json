@@ -32,6 +32,17 @@
       "out_file": "/home/ubuntu/.pm2/logs/sf-websocket-out.log",
       "error_file": "/home/ubuntu/.pm2/logs/sf-websocket-error.log",
       "log_file": "/home/ubuntu/.pm2/logs/sf-websocket-combined.log"
+    },
+    {
+      "name": "sf-player",
+      "cwd": "/home/ubuntu/video-transcoding-e2e/player",
+      "script": "npm",
+      "args": "start",
+      "exec_mode": "cluster",
+      "instances": 1,
+      "out_file": "/home/ubuntu/.pm2/logs/sf-player-out.log",
+      "error_file": "/home/ubuntu/.pm2/logs/sf-player-error.log",
+      "log_file": "/home/ubuntu/.pm2/logs/sf-player-combined.log"
     }
   ]
 }
