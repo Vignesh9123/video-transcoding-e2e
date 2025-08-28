@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Input } from "../ui/input";
 import { axiosClient } from "@/config/axiosConfig";
 import { WS_URL } from "@/constants";
+import { useDebounce } from "@/hooks/useDebounce";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -19,8 +20,8 @@ const VideoList = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
-  const [filteredVideos, setFilteredVideos] = useState<Video[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const {user} = useAuth();
   const [socket , setSocket] = useState<WebSocket | null>(null);
   const [subscribedVideos, setSubscribedVideos] = useState<string[]>([]);
@@ -105,17 +106,10 @@ const VideoList = () => {
     }
   }, [socket, videos])
 
-  useEffect(() => {
-    if(searchQuery === '') setFilteredVideos(videos);
-    else setFilteredVideos(videos.filter((video) => video.name.toLowerCase().includes(searchQuery.toLowerCase())));
-  }, [searchQuery]);
+  const filteredVideos = videos
+  .filter((video) => video.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+  .filter((video) => activeFilter === "all" || video.status === activeFilter)
 
- 
-  useEffect(() => {
-    setFilteredVideos(
-      videos.filter((video) => activeFilter === "all" || video.status === activeFilter)
-    );
-  }, [activeFilter, videos]);
 
   if (isLoading) {
     return (
