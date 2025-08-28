@@ -59,7 +59,7 @@ const VideoCard = ({ video, videoDeleted }: VideoCardProps) => {
   const handleTest = async() => {
     const promise = axiosClient.get(`/api/video/get-video-url/${video.id}`)
     .then(({data})=>{
-      window.open(`http://localhost:5050/sample/${video.id}`, "_blank");
+      window.open(`${PLAYER_APP_URL}/sample/${video.id}`, "_blank");
     })
     toast.promise(promise,{
       loading: "Opening test video",
