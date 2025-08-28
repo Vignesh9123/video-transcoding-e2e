@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Users, Search } from "lucide-react";
+import { Trash2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -22,6 +22,7 @@ import {
 import axios from "axios";
 import Navbar from "@/components/layout/Navbar";
 import { axiosClient } from "@/config/axiosConfig";
+import AdmitUsersPage from "./AdmitToOrg";
 
 interface Member {
     id: string;
@@ -123,10 +124,10 @@ const ManageMembersPage = () => {
     return (
         <div className="min-h-screen bg-background">
             <Navbar />
-            <div className="container mx-auto px-4 py-8">
+            <div className="container mx-auto px-8 py-8">
                 <div className="mb-8">
+                <AdmitUsersPage/>
                     <div className="flex items-center gap-3 mb-2">
-                        <Users className="h-8 w-8 text-primary" />
                         <h1 className="text-3xl font-bold">Manage Members</h1>
                     </div>
                     <p className="text-muted-foreground">

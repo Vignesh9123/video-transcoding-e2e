@@ -23,7 +23,6 @@ const inviteSchema = z.object({
 type InviteFormValues = z.infer<typeof inviteSchema>;
 
 const AdmitUsersPage = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
 
   const form = useForm<InviteFormValues>({
@@ -65,10 +64,9 @@ const AdmitUsersPage = () => {
 
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8 flex-grow">
-        <div className="max-w-2xl mx-auto">
+    <div className="flex flex-col bg-background">
+      <div className=" py-8 flex-grow">
+        <div className="">
           <div className="flex items-center gap-4 mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Admit Users</h1>

@@ -39,28 +39,9 @@ const Navbar = () => {
           </Link>
         </div>
         <div className="flex items-center space-x-4">
-          <ThemeToggle />
           
           {isAuthenticated ? (
             <div className="flex items-center gap-4">
-              {user.roleInOrg != "VIEWER" &&  (pathname !== "/upload" ? <Button className="hidden md:block" variant="outline" asChild>
-                <Link to="/upload">Upload Video</Link>
-              </Button>: 
-              <Button className="hidden md:block" variant="outline" asChild>
-                <Link to="/dashboard">Dashboard</Link>
-              </Button>
-            )}
-              {
-                user?.roleInOrg === "OWNER" && (
-                  pathname !== "/admit-to-org" ?
-                  <Button className="hidden md:block" variant="outline" asChild>
-                    <Link to="/admit-to-org">Admit to Organization</Link>
-                  </Button> :
-                  <Button className="hidden md:block" variant="outline" asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </Button>
-                )
-              }
               {
                 user?.roleInOrg === "OWNER" && (
                   pathname !== "/manage-members" ?
@@ -83,9 +64,6 @@ const Navbar = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {pathname !== "/dashboard" && <DropdownMenuItem asChild>
-                    <Link to="/dashboard">Dashboard</Link>
-                  </DropdownMenuItem>}
                   {pathname !== "/profile" && <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
                   </DropdownMenuItem>}
