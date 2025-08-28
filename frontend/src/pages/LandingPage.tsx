@@ -10,6 +10,7 @@ function App(){
     if(isLoading) return
     if(!isAuthenticated){
       navigate("/login")
+      return
     }
     if(user && !user.organization){
       navigate("/create-org")

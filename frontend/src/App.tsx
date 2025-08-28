@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
@@ -24,8 +24,8 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading , user} = useAuth();
+  console.log('isAuthenticated isLoading', isAuthenticated, isLoading);
   const location = useLocation();
-  const navigate = useNavigate()
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,13 +35,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!isAuthenticated) {
-    navigate("/login?redirect=" + encodeURIComponent(location.pathname));
-    return null
+    return <Navigate to={"/login?redirect=" + encodeURIComponent(location.pathname)} />
+    
   }
-
+  
   if (user && !user.organization) {
-    navigate("/create-org?redirect=" + encodeURIComponent(location.pathname));
-    return null
+    return <Navigate to={"/create-org?redirect=" + encodeURIComponent(location.pathname)} />
   }
 
   return <>{children}</>;

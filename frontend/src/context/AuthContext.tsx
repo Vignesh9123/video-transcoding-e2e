@@ -31,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const getUser = async () => {
+    setIsLoading(true);
     try {
       const response = await axiosClient.get("/api/user/current-user");
       console.log('response from user', response.data);
