@@ -7,7 +7,7 @@
     "build": "npx tsc -b && npm run copy-files",
     "start": "node dist/index.js",
     "copy-files": "copyfiles -u 1 src/**/*.html dist/",
-    "dev": "npm run build && npm run copy-files && npm run start",
+    "dev": "npm run build && npm run start",
     "test": ""
   },
   "keywords": [],

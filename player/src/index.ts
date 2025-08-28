@@ -15,7 +15,9 @@ app.get('/:videoId', async(req, res) => {
 app.get('/sample/:videoId', async(req, res) => {
     const { videoId } = req.params
     const fc = await fs.readFile(path.join(__dirname, 'files', 'player-sample.html'))
-    const dynamicfc = fc.toString().replace("{{M3U8_URL}}", `https://video-transcode-9123-outputs.s3.ap-south-1.amazonaws.com/${videoId}/master.m3u8`)
+    const dynamicfc = fc.toString()
+    .replace("{{M3U8_URL}}", `https://video-transcode-9123-outputs.s3.ap-south-1.amazonaws.com/${videoId}/master.m3u8`)
+    .replace("{{MAIN_APP_URL}}", env.MAIN_APP_URL)
     res.contentType('html')
     res.send(dynamicfc)
 })
