@@ -18,6 +18,8 @@ import Test from './pages/Test';
 import CreateOrgPage from './pages/CreateOrgPage';
 import AdmitToOrgPage from './pages/AdmitToOrg';
 import ManageMembersPage from './pages/ManageMembersPage';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
 
 const queryClient = new QueryClient();
 
@@ -46,7 +48,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// App Routes with Auth Provider
 const AppRoutes = () => (
   <BrowserRouter>
     <AuthProvider>
@@ -54,7 +55,6 @@ const AppRoutes = () => (
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         
-        {/* Protected Routes */}
         <Route 
           path="/dashboard" 
           element={
@@ -82,24 +82,8 @@ const AppRoutes = () => (
         <Route 
           path="/create-org" 
           element={
-            // <ProtectedRoute>
+            // <ProtectedRoute> // TODO  
               <CreateOrgPage />
-            // </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admit-to-org" 
-          element={
-            <ProtectedRoute>
-              <AdmitToOrgPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/test" 
-          element={
-            // <ProtectedRoute>
-              <Test />
             // </ProtectedRoute>
           } 
         />
@@ -122,6 +106,7 @@ const AppRoutes = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="system" storageKey="streamforge-theme">
+    <ReactQueryDevtools initialIsOpen={false} />
       <TooltipProvider>
         <Toaster />
         <Sonner />

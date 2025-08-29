@@ -12,46 +12,60 @@ import { Input } from "../ui/input";
 import { axiosClient } from "@/config/axiosConfig";
 import { WS_URL } from "@/constants";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
 
 const VideoList = () => {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [videos, setVideos] = useState<Video[]>([]);
+  // const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const {user} = useAuth();
   const [socket , setSocket] = useState<WebSocket | null>(null);
   const [subscribedVideos, setSubscribedVideos] = useState<string[]>([]);
+  const queryClient = useQueryClient();
 
 
-  const deleteVideo = (videoId: string) => {
+  const {data: userVideos, isLoading: isUserVideosLoading, } = useQuery({
+    queryKey: ['videos'],
+    queryFn: async () => {
+      const userVideos = await axiosClient.get("/api/video/get-videos");
+      console.log("Response", userVideos.data);
+      return userVideos.data.data
+    },
+    refetchOnWindowFocus: true,
+    staleTime: Infinity // TODO: This is because of the websocket progress updates
+  })
+  const deleteVideo = async(videoId: string) => {
     console.log("Deleting video", videoId);
-    setVideos((prevVideos) => prevVideos.filter((video) => video.id !== videoId));
+    const oldVideos: Video[] = queryClient.getQueryData(["videos"]);
+    const newVideos = oldVideos?.filter((video: Video) => video.id !== videoId);
+    queryClient.setQueryData(["videos"], newVideos);
   }
 
 
 
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const userVideos = await axiosClient.get("/api/video/get-videos");
-        console.log("Response", userVideos.data);
-        setVideos(userVideos.data.data);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load videos",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // const fetchVideos = async () => {
+    //   try {
+    //     const userVideos = await axiosClient.get("/api/video/get-videos");
+    //     console.log("Response", userVideos.data);
+    //     setVideos(userVideos.data.data);
+    //   } catch (error) {
+    //     toast({
+    //       title: "Error",
+    //       description: "Failed to load videos",
+    //       variant: "destructive",
+    //     });
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
 
-    fetchVideos();
+    // fetchVideos();
 
     const scket = new WebSocket(`${WS_URL}/?token=${localStorage.getItem("token")}`);
     setSocket(scket);
@@ -62,30 +76,34 @@ const VideoList = () => {
   }, []); 
 
   useEffect(()=>{
-    if(!socket || socket.readyState !== WebSocket.OPEN) return;
-    const transcodingVideos = videos.filter((video) => video.status !== "COMPLETED" && video.status !== "FAILED");
+    if(!socket || socket.readyState !== WebSocket.OPEN || isUserVideosLoading) return;
+    console.log("User videos subsc", userVideos);
+    const transcodingVideos = userVideos.filter((video) => video.status !== "COMPLETED" && video.status !== "FAILED");
+    console.log("Transcoding videos", transcodingVideos);
     const transcodingVideoIds = transcodingVideos.map((video) => video.id);
+    console.log("Transcoding videos", transcodingVideoIds);
     transcodingVideoIds.forEach((videoId) => {
       if(subscribedVideos.includes(videoId)) return;
+      console.log("Subscribing to video", videoId);
       socket.send(JSON.stringify({
         type: "SUBSCRIBE",
         videoId: videoId
       }))
       setSubscribedVideos((prev) => [...prev, videoId])
     })
-  }, [videos])
+  }, [userVideos,socket, isUserVideosLoading])
 
   useEffect(()=>{
     if(!socket) return;
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data.toString());
       console.log(data)
-      const video = videos.find((video) => video.id == data.videoId);
+      const video = userVideos.find((video) => video.id == data.videoId);
       if(!video){
         console.log("Video not found");
         return
       }
-      setVideos((prevVideos) => prevVideos.map((v) => {
+      queryClient.setQueryData(["videos"],(prevVideos: Video[]) => prevVideos.map((v) => {
         if(v.id === video.id) return {
           ...v,
           status: data.status,
@@ -104,14 +122,11 @@ const VideoList = () => {
     return () => {
       socket.onmessage = null;
     }
-  }, [socket, videos])
+  }, [socket, userVideos])
 
-  const filteredVideos = videos
-  .filter((video) => video.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
-  .filter((video) => activeFilter === "all" || video.status === activeFilter)
-
-
-  if (isLoading) {
+  
+  
+  if (isUserVideosLoading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
         <div className="animate-pulse flex space-x-4">
@@ -130,6 +145,11 @@ const VideoList = () => {
     );
   }
 
+  const filteredVideos = userVideos
+  .filter((video) => video.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
+  .filter((video) => activeFilter === "all" || video.status === activeFilter)
+
+  console.log("Filtered videos", userVideos);
   return (
     <div className="space-y-6">
       <div className="flex flex-row justify-between items-start sm:items-center gap-4">
@@ -156,7 +176,7 @@ const VideoList = () => {
           {filteredVideos.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredVideos.map((video) => (
-                <VideoCard key={video.id} video={video} videoDeleted={deleteVideo} />
+                <VideoCard  key={video.id} video={video} videoDeleted={deleteVideo} />
               ))}
             </div>
           ) : activeFilter == "all" ? (

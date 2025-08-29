@@ -13,16 +13,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import FormatSelection from "./FormatSelection";
 import ResolutionSelection from "./ResolutionSelection";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Progress } from "../ui/progress";
 import ProgressDialogBox from "./ProgressDialogBox";
-import axios from "axios";
 import { Switch } from "../ui/switch";
 import { useAuth } from "@/context/AuthContext";
 import { axiosClient } from "@/config/axiosConfig";
-
+import { useQueryClient } from "@tanstack/react-query";
 interface UploadFormProps {
   onFileChange: (file: File | null) => void;
   uploadedFile: File | null;
@@ -33,14 +29,15 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [description, setDescription] = useState("");
-  const [selectedFormats, setSelectedFormats] = useState<string[]>(["mp4"]);
+  // const [description, setDescription] = useState("");
+  // const [selectedFormats, setSelectedFormats] = useState<string[]>(["mp4"]);
   const [selectedResolutions, setSelectedResolutions] = useState<string[]>(["360p", "480p","720p"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [progress, setProgress] = useState(0);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
+  const queryClient = useQueryClient();
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -129,9 +126,6 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         setProgress(0);
       }
     }
-
-    
-    
     const uploadHandler = async(e: React.FormEvent) => {
       e.preventDefault();
       if(!validateForm()) return
@@ -143,28 +137,6 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
         const res = await axiosClient.post('/api/video/get-presigned-url', {name: title || uploadedFile.name, isPublic, selectedResolutions})
         const {signedUrl, key} = res.data
         videoId = key
-        console.log('signedUrl', signedUrl)
-        // const url = new URL(signedUrl)
-        // console.log('url', url)
-        // const params = Object.fromEntries(url.searchParams)
-        // const formData = new FormData()
-        
-        // formData.append('Content-Type', uploadedFile.type)
-        // formData.append('key', key)
-        // formData.append('file', uploadedFile)
-        // Object.entries(params).forEach(([key, value]) => {
-        //   formData.append(key, value)
-        // })
-  
-        // console.log('formData', formData)
-        // const res2 = await fetch(url.origin, {
-        //   method: "POST",
-        //   body: formData
-        // })
-        // console.log('res2', res2)
-        // if (!res2.ok) {
-        //   throw new Error("Failed to upload file")
-        // }
         await uploadToS3PresignedUrl(uploadedFile, signedUrl, key)
         toast({
           title: "Upload Successful",
@@ -172,6 +144,9 @@ const UploadForm = ({ onFileChange, uploadedFile }: UploadFormProps) => {
           variant: "default"
         })
         onFileChange(null)
+        await queryClient.invalidateQueries({
+          queryKey: ["videos"]
+        });
         navigate("/dashboard")
       } catch (error) {
         console.error('error', error)
