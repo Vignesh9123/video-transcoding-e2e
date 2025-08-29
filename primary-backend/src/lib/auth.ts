@@ -11,12 +11,7 @@ export const auth = betterAuth({
   advanced:{
     crossSubDomainCookies:{
       enabled: true
-    },
-    defaultCookieAttributes: {
-        sameSite: "none", //TODO: This is only because currently I host FE on vercel's domain
-        secure: true,
-        partitioned: true
-      }
+    }
   },
   plugins: [oneTap()],
   trustedOrigins: config.TRUSTED_ORIGINS,

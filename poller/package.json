@@ -1,5 +1,5 @@
 {
-  "name": "video-transcoding",
+  "name": "poller",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -19,7 +19,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
-    "tsc-watch": "^6.2.1",
     "typescript": "^5.9.2"
   }
 }
