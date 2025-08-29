@@ -198,6 +198,22 @@
       </media-controller>
     </div>
     <div class="footer">Transcoded by <a target="_blank" href="{{MAIN_APP_URL}}">StreamForge</a></div>
+    <script>
+      const videoId = "{{VIDEO_ID}}";
+      const analyticsUrl = "{{ANALYTICS_URL}}";
+      async function reportCount() {
+        const response = await fetch(`${analyticsUrl}/add-view`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ videoId }),
+        });
+        const data = await response.text();
+        console.log(data);
+      }
+      reportCount()
+    </script>
 </body>
 
 </html>

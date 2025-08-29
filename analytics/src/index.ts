@@ -1,9 +1,12 @@
 import { clickhouseClient, PORT } from './config'
 import express from 'express'
-
+import cors from 'cors'
 const app = express()
 
 app.use(express.json())
+app.use(cors({
+  origin: '*'
+}))
 
 app.post('/add-view', async (req, res) => {
   try {
