@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { axiosClient } from "@/config/axiosConfig";
 import { WS_URL } from "@/constants";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Command } from "lucide-react";
 
 const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "COMPLETED"] as const;
 type StatusFilter = typeof statusFilters[number];
@@ -124,7 +125,17 @@ const VideoList = () => {
     }
   }, [socket, userVideos])
 
-  
+  const searchRef = useRef<HTMLInputElement>(null);
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if(e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      searchRef.current?.focus();
+    }
+  }
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  },[])
   
   if (isUserVideosLoading) {
     return (
@@ -148,8 +159,7 @@ const VideoList = () => {
   const filteredVideos = userVideos
   .filter((video) => video.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
   .filter((video) => activeFilter === "all" || video.status === activeFilter)
-
-  console.log("Filtered videos", userVideos);
+  
   return (
     <div className="space-y-6">
       <div className="flex flex-row justify-between items-start sm:items-center gap-4">
@@ -159,8 +169,14 @@ const VideoList = () => {
         </Button>}
       </div>
 
-      <div className="flex items-center space-x-2">
-        <Input placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+      <div className="flex items-center space-x-2 relative">
+        <Input ref={searchRef} placeholder="Search" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+        <div className="absolute right-1 flex gap-1 items-center justify-center bg-muted text-muted-foreground p-1 rounded">
+          <Command size={16}/>
+          <p className="text-sm">
+            K
+          </p>
+        </div>
       </div>
 
       <Tabs defaultValue="all" value={activeFilter} onValueChange={(v) => setActiveFilter(v as StatusFilter)}>
