@@ -15,7 +15,7 @@ export const auth = betterAuth({
     defaultCookieAttributes: {
         sameSite: "none", //TODO: This is only because currently I host FE on vercel's domain
         secure: true,
-        partitioned: true // New browser standards will mandate this for foreign cookies
+        partitioned: true
       }
   },
   plugins: [oneTap()],

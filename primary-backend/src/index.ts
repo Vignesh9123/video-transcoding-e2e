@@ -23,7 +23,7 @@ dotenv.config()
 
 app.use(cors(
     {
-        origin: ['http://localhost:8080', 'https://hlsjs.video-dev.org', 'https://livepush.io', 'https://video-transcoding-e2e.vercel.app', 'http://localhost:3000'],
+        origin: config.TRUSTED_ORIGINS,
         credentials: true,
     }
 ))
