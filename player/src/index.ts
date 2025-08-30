@@ -20,7 +20,6 @@ app.get('/sample/:videoId', async(req, res) => {
     .replace("{{MAIN_APP_URL}}", env.MAIN_APP_URL)
     .replace("{{ANALYTICS_URL}}", env.ANALYTICS_URL)
     .replace("{{VIDEO_ID}}", videoId)
-    .replace
     res.contentType('html')
     res.send(dynamicfc)
 })
