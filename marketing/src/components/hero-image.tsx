@@ -12,7 +12,7 @@ function HeroImage() {
   const translateZ = useTransform(scrollYProgress, [0.3, 0.6], [50, 0]);
   const translateY = useTransform(scrollYProgress, [0.3, 0.6], [-30, 0]);
   return (
-    <motion.div ref={ref} className='bg-background border border-muted rounded-lg shadow-lg dark:shadow-muted [perspective:1000px] transform-3d'
+    <motion.div ref={ref} className='bg-background border border-muted rounded-lg shadow-lg dark:shadow-muted perspective-midrange transform-3d'
          
         >
           <motion.img
@@ -20,7 +20,7 @@ function HeroImage() {
             alt="hero"
             width={1000}
             height={500}
-            className='p-2 rounded-xl dark:hidden'
+            className='rounded-xl dark:hidden border m-2'
             style={{
               rotateX,
               translateZ,
@@ -33,7 +33,7 @@ function HeroImage() {
             alt="hero"
             width={1000}
             height={500}
-            className='p-2 rounded-xl hidden dark:block'
+            className='rounded-xl hidden dark:block border m-2'
             style={{
               rotateX,
               translateZ,

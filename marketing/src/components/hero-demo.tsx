@@ -59,7 +59,7 @@ export default function HeroDemo() {
                   inactiveZone={0.01}
                   variant='white'
                 />
-                <div className="block p-4 bg-gradient-to-b from-background via-background to-muted rounded-md text-foreground shadow-sky-500 shadow-md/30 hover:shadow-lg hover:shadow-sky-500/40 hover:translate-y-[-2px] transition-all duration-200 ease-in-out active:translate-y-px text-center">
+                <div className="block p-4 h-full bg-gradient-to-b from-background via-background to-muted/30 rounded-md text-foreground shadow-sky-500 shadow-md/30 hover:shadow-lg hover:shadow-sky-500/40 hover:translate-y-[-2px] transition-all duration-200 ease-in-out active:translate-y-px text-cente">
                   Watch Demo
                 </div>
               </motion.div>
