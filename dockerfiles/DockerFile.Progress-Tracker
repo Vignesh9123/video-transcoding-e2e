@@ -1,0 +1,16 @@
+FROM node:22.19-alpine 
+
+WORKDIR /usr/src/app
+
+COPY ./progress-tracker/package* .
+
+RUN npm install 
+
+COPY ./progress-tracker .
+
+RUN npm run build
+
+EXPOSE 9090
+
+CMD ["npm", "run", "start"]
+

@@ -1,0 +1,16 @@
+FROM node:22.19-alpine 
+
+WORKDIR /usr/src/app
+
+COPY ./primary-backend/package* .
+
+RUN npm install 
+
+COPY ./primary-backend .
+
+RUN npm run build
+
+EXPOSE 4000
+
+CMD ["npm", "run", "start"]
+
