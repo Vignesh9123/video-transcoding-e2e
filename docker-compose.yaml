@@ -7,7 +7,12 @@ services:
     ports:
       - "8080:8080"
     volumes:
+      - ./frontend:/usr/src/app
       - vite-node-modules:/usr/src/app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - NODE_ENV=development
 
 
   marketing:
@@ -16,6 +21,9 @@ services:
       dockerfile: ./dockerfiles/DockerFile.Marketing
     ports:
       - "3000:3000"
+    volumes:
+      - ./marketing:/usr/src/app
+      - marketing-node-modules:/usr/src/app/node_modules
   
   backend:
     build:
@@ -44,4 +52,5 @@ services:
 
 volumes:
    vite-node-modules:
+   marketing-node-modules:
   
