@@ -1,0 +1,47 @@
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/DockerFile.Frontend
+    ports:
+      - "8080:8080"
+    volumes:
+      - vite-node-modules:/usr/src/app/node_modules
+
+
+  marketing:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/DockerFile.Marketing
+    ports:
+      - "3000:3000"
+  
+  backend:
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/DockerFile.Primary-Backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./primary-backend:/usr/src/app
+
+  poller:
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/DockerFile.Poller
+    volumes:
+      - ./poller:/usr/src/app
+
+  progress-tracker:
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/DockerFile.Progress-Tracker
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./progress-tracker:/usr/src/app
+
+volumes:
+   vite-node-modules:
+  
