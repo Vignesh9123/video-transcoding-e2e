@@ -33,7 +33,7 @@ app.use(express.json())
 app.use(limiter)
 
 app.get("/", (req, res) => {
-    res.send('I am waiting')
+    res.json({message:'I am waiting'})
 })
 app.get('/health', (req, res) => {
     res.send('OK')

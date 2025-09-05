@@ -22,6 +22,20 @@ jobs:
     steps:
       - name: SSH to EC2
         run: |
-          echo "${{secrets.SSH_KEY}}" > ~/ssh_key
-          chmod 700 ~/ssh_key 
-          ssh -i ~/ssh_key -o StrictHostKeyChecking=no ubuntu@${{secrets.EC2_IP}} "cd /home/ubuntu/video-transcoding-e2e && git pull && cd poller && npm install && npm run build && cd ../primary-backend && npm install && npm run build && cd ../progress-tracker && npm install && npm run build && cd ../player && npm install && npm run build && cd .. && pm2 reload pm2.config.json"
+          echo "${{ secrets.SSH_KEY }}" > ~/ssh_key
+          chmod 700 ~/ssh_key
+
+          ssh -i ~/ssh_key -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << 'EOF'
+            set -e
+            cd /home/ubuntu/video-transcoding-e2e
+            git pull
+
+            for dir in poller primary-backend progress-tracker player; do
+              cd $dir
+              npm install
+              npm run build
+              cd ..
+            done
+
+            pm2 reload pm2.config.json
+          EOF
