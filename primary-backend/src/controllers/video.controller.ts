@@ -3,6 +3,8 @@ import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { config, prisma, prisma10MinsTTL } from "../config";
 import { generateToken } from "../utils";
+import { Prisma } from "@prisma/client";
+import { PrismaCacheStrategy } from "@prisma/extension-accelerate";
 export const getPresignedUrl = async (req: Request, res: Response) => {
     try {
         const { name, isPublic, selectedResolutions } = req.body
@@ -19,7 +21,7 @@ export const getPresignedUrl = async (req: Request, res: Response) => {
                 name,
                 userId: id,
                 organization: user?.organization,
-                isPublic: user.roleInOrg == "OWNER" ? isPublic: false,
+                isPublic: user.roleInOrg == "OWNER" ? isPublic : false,
                 variants: selectedResolutions.length > 0 ? selectedResolutions : ['360p', '480p', '720p']
             }
         })
@@ -55,6 +57,7 @@ export const getPresignedUrl = async (req: Request, res: Response) => {
 export const getUserVideos = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id!;
+        const { page, limit } = req.query;
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
@@ -63,7 +66,7 @@ export const getUserVideos = async (req: Request, res: Response) => {
         })
         if (!user?.organization) throw new Error('User is not part of any organization')
         if (user.roleInOrg == "OWNER") {
-            const videos = await prisma.video.findMany({
+            const query: Prisma.VideoFindManyArgs & PrismaCacheStrategy = {
                 where: {
                     organization: user.organization
                 },
@@ -73,6 +76,8 @@ export const getUserVideos = async (req: Request, res: Response) => {
                     name: 'asc'
                 }
                 ],
+                skip: (Number(page) - 1) * Number(limit),
+                take: Number(limit),
                 include: {
                     User: {
                         select: {
@@ -82,18 +87,34 @@ export const getUserVideos = async (req: Request, res: Response) => {
                     }
                 },
                 cacheStrategy: prisma10MinsTTL
-            })
+
+            }
+            const [videos, totalVideosCount] = await prisma.$transaction([
+                prisma.video.findMany(query),
+                prisma.video.count({
+                    where: query.where
+                })
+            ])
             res.status(200).json({
-                data: videos,
+                data: {
+                    videos,
+                    pagination: {
+                        page: Number(page),
+                        limit: Number(limit),
+                        totalVideosCount
+                    }
+                },
                 success: true,
                 message: "Videos fetched successfully"
             })
         }
         else if (user.roleInOrg == "EDITOR") {
-            const videos = await prisma.video.findMany({
+            const query: Prisma.VideoFindManyArgs & PrismaCacheStrategy = {
                 where: {
                     userId: userId
                 },
+                skip: (Number(page) - 1) * Number(limit),
+                take: Number(limit),
                 orderBy: [{
                     createdAt: 'desc'
                 }, {
@@ -101,25 +122,39 @@ export const getUserVideos = async (req: Request, res: Response) => {
                 }
                 ],
                 cacheStrategy: prisma10MinsTTL
-            })
+            }
+            const [videos, totalVideosCount] = await prisma.$transaction([
+                prisma.video.findMany(query),
+                prisma.video.count({
+                    where: query.where
+                })
+            ])
             res.status(200).json({
-                data: videos,
+                data: {
+                    videos,
+                    pagination: {
+                        page: Number(page),
+                        limit: Number(limit),
+                        totalVideosCount
+                    }
+                },
                 success: true,
                 message: "Videos fetched successfully"
             })
         }
         else {
-            const videos = await prisma.video.findMany({
+            const query: Prisma.VideoFindManyArgs & PrismaCacheStrategy = {
                 where: {
                     organization: user.organization,
                     isPublic: true
                 },
+                skip: (Number(page) - 1) * Number(limit),
+                take: Number(limit),
                 orderBy: [{
                     createdAt: 'desc'
                 }, {
                     name: 'asc'
-                }
-                ],
+                }],
                 include: {
                     User: {
                         select: {
@@ -129,9 +164,22 @@ export const getUserVideos = async (req: Request, res: Response) => {
                     }
                 },
                 cacheStrategy: prisma10MinsTTL
-            })
+            }
+            const [videos, totalVideosCount] = await prisma.$transaction([
+                prisma.video.findMany(query),
+                prisma.video.count({
+                    where: query.where
+                })
+            ])
             res.status(200).json({
-                data: videos,
+                data: {
+                    videos,
+                    pagination: {
+                        page: Number(page),
+                        limit: Number(limit),
+                        totalVideosCount
+                    }
+                },
                 success: true,
                 message: "Videos fetched successfully"
             })
@@ -354,8 +402,8 @@ export const getVideoURL = async (req: Request, res: Response) => {
         const streamUrl = `${req.protocol}://${req.headers.host}/api/stream`
         if (user.roleInOrg == "OWNER") {
             const token = generateToken({ videoId: video.id, userId: user.id })
-            if(!token) throw new Error("Internal Server Error");
-            const url = streamUrl+"?token="+token
+            if (!token) throw new Error("Internal Server Error");
+            const url = streamUrl + "?token=" + token
             res.status(200).json({
                 success: true,
                 data: url,
@@ -373,8 +421,8 @@ export const getVideoURL = async (req: Request, res: Response) => {
                 return
             }
             const token = generateToken({ videoId: video.id, userId: user.id })
-            if(!token) throw new Error("Internal Server Error");
-            const url = streamUrl+"?token="+token
+            if (!token) throw new Error("Internal Server Error");
+            const url = streamUrl + "?token=" + token
             res.status(200).json({
                 success: true,
                 data: url,
@@ -392,8 +440,8 @@ export const getVideoURL = async (req: Request, res: Response) => {
                 return
             }
             const token = generateToken({ videoId: video.id, userId: user.id })
-            if(!token) throw new Error("Internal Server Error");
-            const url = streamUrl+"?token="+token
+            if (!token) throw new Error("Internal Server Error");
+            const url = streamUrl + "?token=" + token
             res.status(200).json({
                 success: true,
                 data: url,
@@ -412,7 +460,7 @@ export const getVideoURL = async (req: Request, res: Response) => {
 
 }
 
-export const toggleVideoVisibility = async(req: Request, res: Response)=>{
+export const toggleVideoVisibility = async (req: Request, res: Response) => {
     try {
         const videoId = req.params.videoId;
         const userId = req.user.id
@@ -422,16 +470,16 @@ export const toggleVideoVisibility = async(req: Request, res: Response)=>{
             },
             cacheStrategy: prisma10MinsTTL
         })
-        if(!user) throw new Error("No user with that ID")
-        if(user.roleInOrg != "OWNER") throw new Error("Unauthorized");
+        if (!user) throw new Error("No user with that ID")
+        if (user.roleInOrg != "OWNER") throw new Error("Unauthorized");
         const video = await prisma.video.findUnique({
-            where:{
+            where: {
                 id: videoId
             },
             cacheStrategy: prisma10MinsTTL
         })
-        if(!video) throw new Error("No video with that ID")
-        if(user.organization != video.organization) throw new Error("Unauthorized");
+        if (!video) throw new Error("No video with that ID")
+        if (user.organization != video.organization) throw new Error("Unauthorized");
         await prisma.video.update({
             where: {
                 id: videoId
@@ -454,29 +502,29 @@ export const toggleVideoVisibility = async(req: Request, res: Response)=>{
     }
 }
 
-export const updateVideoStatus = async(req: Request, res: Response)=>{
+export const updateVideoStatus = async (req: Request, res: Response) => {
     try {
-        const {videoId, status} = req.body;
+        const { videoId, status } = req.body;
         const userId = req.user.id
-        
+
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
             },
             cacheStrategy: prisma10MinsTTL
         })
-        if(!user) throw new Error("No user with that ID")
-        
+        if (!user) throw new Error("No user with that ID")
+
         const video = await prisma.video.findUnique({
-            where:{
+            where: {
                 id: videoId
             },
             cacheStrategy: prisma10MinsTTL
         })
-        if(!video) throw new Error("No video with that ID")
-        if(user.organization != video.organization || (user.roleInOrg != "OWNER" && user.roleInOrg != "EDITOR")) throw new Error("Unauthorized");
-        if(user.roleInOrg == "EDITOR" && user.id != video.userId) throw new Error("Unauthorized");
-        if(status != "FAILED"){ // We only allow updating status to "FAILED" coz that's the only use case right now
+        if (!video) throw new Error("No video with that ID")
+        if (user.organization != video.organization || (user.roleInOrg != "OWNER" && user.roleInOrg != "EDITOR")) throw new Error("Unauthorized");
+        if (user.roleInOrg == "EDITOR" && user.id != video.userId) throw new Error("Unauthorized");
+        if (status != "FAILED") { // We only allow updating status to "FAILED" coz that's the only use case right now
             res.status(400).json({
                 success: false,
                 message: "Please provide correct status"
