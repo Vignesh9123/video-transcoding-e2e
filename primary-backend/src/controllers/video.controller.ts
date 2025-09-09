@@ -57,7 +57,7 @@ export const getPresignedUrl = async (req: Request, res: Response) => {
 export const getUserVideos = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id!;
-        const { page, limit } = req.query;
+        const { page, limit, search = "" } = req.query;
         const user = await prisma.user.findUnique({
             where: {
                 id: userId
@@ -68,7 +68,11 @@ export const getUserVideos = async (req: Request, res: Response) => {
         if (user.roleInOrg == "OWNER") {
             const query: Prisma.VideoFindManyArgs & PrismaCacheStrategy = {
                 where: {
-                    organization: user.organization
+                    organization: user.organization,
+                    name:{
+                        contains: search as string,
+                        mode:"insensitive"
+                    }
                 },
                 orderBy: [{
                     createdAt: 'desc'
