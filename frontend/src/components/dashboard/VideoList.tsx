@@ -19,8 +19,6 @@ const statusFilters = ["all", "UPLOADING", "PENDING", "TRANSCODING", "FAILED", "
 type StatusFilter = typeof statusFilters[number];
 
 const VideoList = () => {
-  // const [videos, setVideos] = useState<Video[]>([]);
-  // const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
@@ -29,45 +27,38 @@ const VideoList = () => {
   const [subscribedVideos, setSubscribedVideos] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
+  const [page, setPage] = useState(1);
+  const limit = 6;
 
-  const {data: userVideos, isLoading: isUserVideosLoading, } = useQuery({
-    queryKey: ['videos'],
+
+  const {data : videosResponse , isLoading: isUserVideosLoading } = useQuery({
+    queryKey: [`videos`,page],
     queryFn: async () => {
-      const userVideos = await axiosClient.get("/api/video/get-videos");
+      const userVideos = await axiosClient.get("/api/video/get-videos", {
+        params: {
+          page,
+          limit
+        }
+      });
       console.log("Response", userVideos.data);
       return userVideos.data.data
     },
     refetchOnWindowFocus: true,
     staleTime: Infinity // TODO: This is because of the websocket progress updates
   })
+
+  const userVideos = videosResponse?.videos || [];
+  const totalVideos = videosResponse?.pagination.totalVideosCount || 0;
   const deleteVideo = async(videoId: string) => {
     console.log("Deleting video", videoId);
-    const oldVideos: Video[] = queryClient.getQueryData(["videos"]);
+    const oldVideos: Video[] = queryClient.getQueryData([`videos`, page]);
     const newVideos = oldVideos?.filter((video: Video) => video.id !== videoId);
-    queryClient.setQueryData(["videos"], newVideos);
+    queryClient.setQueryData([`videos`, page], newVideos);
   }
 
 
 
   useEffect(() => {
-    // const fetchVideos = async () => {
-    //   try {
-    //     const userVideos = await axiosClient.get("/api/video/get-videos");
-    //     console.log("Response", userVideos.data);
-    //     setVideos(userVideos.data.data);
-    //   } catch (error) {
-    //     toast({
-    //       title: "Error",
-    //       description: "Failed to load videos",
-    //       variant: "destructive",
-    //     });
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // };
-
-    // fetchVideos();
-
     const scket = new WebSocket(`${WS_URL}/?token=${localStorage.getItem("token")}`);
     setSocket(scket);
     return () => {
@@ -104,7 +95,7 @@ const VideoList = () => {
         console.log("Video not found");
         return
       }
-      queryClient.setQueryData(["videos"],(prevVideos: Video[]) => prevVideos.map((v) => {
+      queryClient.setQueryData([`videos`, page],(prevVideos: Video[]) => prevVideos.map((v) => {
         if(v.id === video.id) return {
           ...v,
           status: data.status,
@@ -136,6 +127,10 @@ const VideoList = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   },[])
+
+  useEffect(() => {
+    window.scrollTo({top:100, behavior: "smooth" });
+  }, [page]);
   
   if (isUserVideosLoading) {
     return (
@@ -216,6 +211,12 @@ const VideoList = () => {
         }
         </TabsContent>
       </Tabs>
+
+      <div className="flex flex-row justify-center items-center gap-4">
+        <Button onClick={() => setPage(page - 1)} disabled={page === 1}>Previous</Button>
+        <p className="text-sm">Page {page} of {Math.ceil(totalVideos / limit) }</p>
+        <Button onClick={() => setPage(page + 1)} disabled={page === Math.ceil(totalVideos / limit)}>Next</Button>
+      </div>
     </div>
   );
 };
